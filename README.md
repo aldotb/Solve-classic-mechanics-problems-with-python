@@ -1,0 +1,1 @@
+![Image of Yaktocat](//Doc_img/mdoc2.png)
