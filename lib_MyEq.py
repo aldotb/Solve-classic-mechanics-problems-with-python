@@ -1816,6 +1816,22 @@ class MyEq:
         else:
             ee=MyEq(kres,kname=kname,var2=var2,ktype='I')
             return ee
+    def Area(self,kname='',var2='',x1='',x2='',kope=''):
+        if var2=='':
+            var2=self.var2
+        if x1=='':
+            x1=self.x1
+            x2=self.x2    
+           
+        ee=MyEq(self.ksym,kname=kname,var2=var2,x1=x1,x2=x2,ktype='I',kshow=False)
+        if kname!='':
+            ee.s()
+            ee.doitI()
+            return ee
+        else:
+            ee.doitI(kshow=False)
+            return ee.ksym
+               
     def area_value(self):
         ee=MyEq(self.ksym,var2=self.var2,x1=self.x1,x2=self.x2,kshow=False)
         ee.area(kshow=False)
@@ -2555,7 +2571,27 @@ def FryQ(P,ang=0, kname='Fry', kope=''):
     kres=yy*cos(ang)-xx*sin(ang)
      
     return MyEq(kres, kname, kope=kope,ktype='Ph',Pobj=P)    
+    
+def axQ(P, kname='ax', kope=''):
+    kres=P.x_res()
+     
+    return MyEq(P.x_res()/P.m, kname, kope=kope,ktype='Ph',Pobj=P)
+def ayQ(P, kname='ay', kope=''):
+    return MyEq(P.y_res()/P.m, kname, kope=kope,ktype='Ph',Pobj=P) 
 
+def arxQ(P,ang=0, kname='arx', kope=''):
+    xx=P.x_res()
+    yy=P.y_res()
+    kres=(yy*sin(ang)+xx*cos(ang))/P.m
+    return MyEq(kres, kname, kope=kope,ktype='Ph',Pobj=P)
+    
+def aryQ(P,ang=0, kname='ary', kope=''):
+    xx=P.x_res()
+    yy=P.y_res()
+    kres=(yy*cos(ang)-xx*sin(ang))/P.m
+    return MyEq(kres, kname, kope=kope,ktype='Ph',Pobj=P)     
+    
+    
 def ToQ(P, kname='To', kope='', x1=0, y1=0,kshow=True,forza_pos=True):
     kres=P.torque(x1, y1)
     kres=kres*(signo(kres))
