@@ -49,6 +49,7 @@ class MyEq:
         self.Pobj=Pobj
         self.ssym=ssym
         
+         
             
          
         if type(ksym)==MyEq:
@@ -73,7 +74,8 @@ class MyEq:
                     s2=alphaname(var2)
                 kname=s1+'_{('+s2+')}'
                 self.name = kname
-
+         
+        
         if  'I' in ktype:
             self.primi=self.ksym
             if self.x1=='': 
@@ -337,7 +339,9 @@ class MyEq:
         return self.v
 
     def update(self, kres):
-            
+        if self.type=='Z':
+            if self.name=='e2':
+                self.upgrade(e1)
         
         self.histo = self.ksym
         self.ksym = kres
@@ -349,6 +353,14 @@ class MyEq:
         for i in args:
             kname=i.name
             self.set(kname,i,kshow=False,kope=kope)
+            if 'I' in self.type:
+                ee=MyEq(self.primi,kshow=False)
+                ee.set(kname,i,kshow=False,kope=kope)
+                self.primi=ee.ksym
+            try:
+                self.primi=self.primi.subs(kname,i)
+            except:
+                done=False
         if len(kwargs)>0:
             self.set(**kwargs,kshow=False)
         if kshow:    
@@ -638,21 +650,30 @@ class MyEq:
             self.s()
         
     def set(self, knom='', kval='', kshow=True, kope='', kret=False,andsolve=[],Bag='',**kwargs):
+        if len(kwargs)>0 and knom=='' and kval=='':
+            for key, value in kwargs.items():
+                    self.set(parse_expr(key),value,kshow=False)
+            self.s()
+            return    
+            
         if type(kval)==Symbol:
             kval=kval.name
         
         if self.type=='Ph':
-            self.Pobj.store_val(knom,kval)
-            mm= self.Pobj.F
-            qq=len(mm)
-            for i in range (qq):
-                pkres=mm[i][0]
-                try:
-                    pkres=pkres.subs(knom,kval)
-                except:
-                    done=False
-                mm[i][0]=pkres
-            self.Pobj.F=mm
+            try:
+                self.Pobj.store_val(knom,kval)
+                mm= self.Pobj.F
+                qq=len(mm)
+                for i in range (qq):
+                    pkres=mm[i][0]
+                    try:
+                        pkres=pkres.subs(knom,kval)
+                    except:
+                        done=False
+                    mm[i][0]=pkres
+                self.Pobj.F=mm
+            except:
+                done=False
          
         try:
             kres=self.primi
@@ -1457,6 +1478,22 @@ class MyEq:
             var2=self.var2
         if typeD==2:
             return MyEq(Derivative(kres,var2),kname=kname,var2= var2,ktype='Diff') 
+    def changediffI(self,newvar2,newvalue='',x1='',x2=''):
+        kres=self.primi
+        if newvalue!='':
+            kres=kres*newvalue 
+            self.primi=kres    
+        self.var2=newvar2
+        if x1!='':
+            self.x1=x1
+            self.x2=x2
+        if self.x1=='': 
+                self.ksym=Integral(self.primi, self.var2)
+        else:
+            self.ksym=Integral(self.primi, (self.var2,self.x1,self.x2))
+        self.s()
+         
+    
     def changediff(self,nkvar,nvalue='',x1='',x2=''):
         if self.type!='I':
             return
@@ -2755,6 +2792,17 @@ def e7Q(ksym, kope='', kshow=True,var2=t):
 def e8Q(ksym, kope='', kshow=True,var2=t):
     return MyEq(ksym, 'e8', kope=kope, kshow=kshow,ktype='C',var2='t')
 
+    
+###############################################
+#  Mass center Inertia
+
+def pQ(mm,vv,kope=''):
+    rho=symbols('rho') 
+    
+    kres=mm/vv
+    sE([rho,'=',kres])
+    return kres
+
 #################################################
 #   Solve Algorithm
     
@@ -3043,11 +3091,27 @@ def setset(*args):
      
     for i in mee:
         i.s()            
-         
-
+'''
+def get_type(esym):
+    mm=['e1','e2','e3','e4','e5','e6','e7','e8']
+    done=False
+    for i in mm:
+        
+    
+            
+def get_eList(ksym):
+    mm=['e1','e2','e3','e4','e5','e6','e7','e8']
+    kres=[]
+    for i in mm:
+        if i in mm:
+            if i.type=='C'
+'''
+            
 class eQ(MyEq):
-    def __init__(self, ksym, kname='', kp=False, kope='', kshow=True,ktype='P',xx='',kvar2='',var2=t,dtype=1,depen=False,x1='',x2=''):
-        self.t=ktype
+    def __init__(self,ksym, kname='',kvar2='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='',dtype=1,depen=False,x1='',x2='',y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',eList=[]):
+        
+            
+        self.type=ktype
         self.type=ktype
         self.depen=depen
         self.eeq=ksym
@@ -3060,34 +3124,60 @@ class eQ(MyEq):
         self.odeQ=''
         self.ode=''
         self.oldprimi=''
-        if type(ksym)==MyEq:
-            seq=str(ksym())
-            self.ksym = unisymbols(opemat(ksym(), kope=kope))
-            self.v = unisymbols(opemat(ksym(), kope=kope))
-            self.eeq=ksym
-        elif type(ksym)==MyEqMat:
-            self.ksym = unisymbols(opemat(ksym(), kope=kope))
+        self.y1=y1
+        self.y2=y2
+        self.z1=z1
+        self.z2=z2
+        self.Pobj=Pobj
+        self.ee=ee
+        self.kvar2=kvar2
+        self.var2=var2
+        self.var1=var1
+        self.varx=varx
+        self.vary=vary
+        self.varz=varz
+        if type(ksym)==str:
+            self.ksym=ksym
+            self.type='Z'
+            self.ssym=ksym
             
-        else:    
-            seq=str(ksym)
-            self.ksym = unisymbols(opemat(ksym, kope=kope))
-            self.v = unisymbols(opemat(ksym, kope=kope))
+        if type(ksym)==MyEq:
+            self.ksym=ksym.ksym
+            self.type='C'
+            self.ssym=''
+        if type(ksym)==eQ:
+            if ksym.type=='C':
+                self.ksym=ksym.ksym
+                self.type='C'
+                self.ssym=''
+            if ksym.type=='Z':
+                self.ksym=eval(ksym.ssym)
+                self.type='Z'
+                self.ssym=ksym    
+        else:
+         
+            self.ksym=ksym 
+            self.type='C'
+            self.ssym=''
+            
+            
+        
         self.name = alphaname(kname)
         
         
         
 
-        self.histo = unisymbols(opemat(ksym, kope=kope))
+        self.histo = unisymbols(opemat(self.ksym, kope=kope))
         if kshow:
             if self.name == '':
                 display(Math(latex(self.ksym)))
             else:
                 sR = self.name + ' ='
                 display(Math(sR + latex(self.ksym)))
-        self.xx=xx
+         
         self.EqDiff=''
         self.EqInte=''
-        self.var2=kvar2
+         
         if kvar2=='':
             self.var2=t
         self.iniG=0
@@ -3103,30 +3193,68 @@ class eQ(MyEq):
                 self.x2=kvar2
         
         # self.s()
-        if dtype==1:
-            if self not in dataQ and self.name!='': 
-                dataQ.append(self) 
+
     def __call__(self,*args,**kwargs):
+        print('zz')
         if len(args)==1:
-            if self.ksym==args[0]:
+            print(1)
+            if self.type=='V':
+            
+                kres=args[0]
+                if type(kres)==str:
+                    self.type='Z' 
+                    self.ssym=kres
+                    self.ksym=eval(kres) 
+                else:
+                    self.type='C'
+                    self.ssym=''
+                    self.ksym=kres
+                    
                 self.s()
                 return
+        if len(args)==0 and len(kwargs)==0:   
+            print(2)
+            if self.type=='Z':
+                print('ss')
+                mm=['e1','e2','e3']
+                vv=[e1,e2,e3]
+                kres=self.ssym
+                for i,j in (mm,vv):
+                    if self.name!=i:
+                        if i.type!='V':
+                            if i.type=='C':
+                                kres=kres.replace(i,str(j.ksym))
+                            else:
+                                kres=kres.replace(i,j.ssym)
+                kres=eval(kres)
+                self.ksym=kres
+                return kres    
+            if self.type=='V':
+                return 0
+            if self.type=='C':
+                return self.ksym
+                
         if self.ksym=='' and len(args)==0:
+            print(3)
             print ('si')
             return
               
         elif self.ksym=='' and len(args)==1:
+            print(4)
             self.ksym=args[0]
             self.s()
             return        
         elif len(args)==1 and  args[0]==self.ksym:
+            print(5)
             self.s()
         else:
             if len(args)==1 and args[0]=='cls':
+                print(6)
                 self.ksym=''
                 return
             
             if len(args)==1 and len(kwargs)==0:
+                print(7)
                 var2=self.var2
                 ksym=self.ksym
                 return ksym.subs(var2,args[0])
@@ -3186,24 +3314,37 @@ class eQ(MyEq):
 
         return self.ksym
 
+    def updatee(self):
+        mm=['e8','e7','e6','e5','e4','e3','e2','e1']
+        vv=[e8,e7,e6,e5,e4,e3,e2,e1]
+        sres=self.ssym
+        for i,j in zip(mm,vv):
+            if self.name!=i:
+                if j.ssym!='':
+                    sres=sres.replace(i,j.ssym)
+                else:
+                    sres=sres.replace(i,str(j.ksym))
+        self.ksym=eval(sres)            
+        
         
 def reset_eq(*args):
     for i in args:
         i.ksym=''
+        i.type='V'
         
         
-e1=eQ(ksym='',kname='e1',kshow=False,ktype='C')   
-e2=eQ(ksym='',kname='e2',kshow=False,ktype='C')  
-e3=eQ(ksym='',kname='e3',kshow=False,ktype='C')  
-e4=eQ(ksym='',kname='e4',kshow=False,ktype='C')  
-e5=eQ(ksym='',kname='e5',kshow=False,ktype='C')   
-e6=eQ(ksym='',kname='e6',kshow=False,ktype='C')   
-e7=eQ(ksym='',kname='e7',kshow=False,ktype='C') 
-e8=eQ(ksym='',kname='e8',kshow=False,ktype='C')
-e9=eQ(ksym='',kname='e9',kshow=False,ktype='C')  
-e10=eQ(ksym='',kname='e10',kshow=False,ktype='C')   
-e11=eQ(ksym='',kname='e11',kshow=False,ktype='C')  
-e12=eQ(ksym='',kname='e12',kshow=False,ktype='C')
+e1=eQ(ksym='',kname='e1',kshow=False,ktype='V')   
+e2=eQ(ksym='',kname='e2',kshow=False,ktype='V')  
+e3=eQ(ksym='',kname='e3',kshow=False,ktype='V')  
+e4=eQ(ksym='',kname='e4',kshow=False,ktype='V')  
+e5=eQ(ksym='',kname='e5',kshow=False,ktype='V')   
+e6=eQ(ksym='',kname='e6',kshow=False,ktype='V')   
+e7=eQ(ksym='',kname='e7',kshow=False,ktype='V') 
+e8=eQ(ksym='',kname='e8',kshow=False,ktype='V')
+e9=eQ(ksym='',kname='e9',kshow=False,ktype='V')  
+e10=eQ(ksym='',kname='e10',kshow=False,ktype='V')   
+e11=eQ(ksym='',kname='e11',kshow=False,ktype='V')  
+e12=eQ(ksym='',kname='e12',kshow=False,ktype='V')
 
 def eQSolver(*args):
     vec1=[]

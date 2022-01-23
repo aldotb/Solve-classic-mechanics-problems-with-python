@@ -9,15 +9,18 @@ from IPython.display import Image, display
 
 from sympy import symbols
 m,m1,m2,m3,m4,M,g,x,x1,x2,y,y1,y2,X,Y,a,a1,a2,a3,v,v1,v2,M1,M2,M3= symbols('m m1 m2 m3 m4 M g x x1 x2 y y1 y2 X Y a a1 a2 a3 v v1 v2 M1 M2 M3')
-w,w1,w2,aw,aw1,aw2,F,F1,F2,Rx,Ry,r,r1,r2,R,ax,ay= symbols('w w1 w2 aw aw1 aw2 F F1 F2 R_x R_y r r1 r2 R ax ay')
+w,w1,w2,aw,aw1,aw2,F,F1,F2,Rx,Ry,r,r1,r2,R,ax,ay,V= symbols('w w1 w2 aw aw1 aw2 F F1 F2 R_x R_y r r1 r2 R ax ay V')
 mu,mu1,mu2,fr,fr1,fr2,N1,N2,Nm, L,L1,L2,h,h1,h2,b,H= symbols('mu  mu1 mu2  fr fr1 fr2 N1 N2 Nm  L L1 L2 h h1 h2 b H')
 alpha,tetha,ac,at,alpha1,alpha2=symbols('alpha theta ac at alpha1 alpha2')
 t,vx,vy,vxy,Po,Ti,I_n,In,a_w,Fc,a_c,a_t,  Io=symbols('t vx vy vxy Po Ti I_n In a_w Fc a_c a_t    I_o')
 T,T1,T2,t1,t2,t3=symbols('T T1 T2 t1 t2 t3')
 K,X1,X2,X0,d,W,P=symbols('K X1 X2 X0 d W P')
-rho,z,z1,z2,A,p=symbols('rhz z  z1 z2 A p') 
+rho,z,z1,z2,A,p=symbols('rho z  z1 z2 A p') 
 xo,yo,zo,beta,xi,xf=symbols('xo yo zo beta x_i x_f')
-yp,xp,pp=symbols("y' x' p'")    
+yp,xp,pp=symbols("y' x' p'") 
+# diff variables
+
+dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV')   
 class mparticle:
     def __init__(self,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=a,g=g,v=v,w=w,ac=ac,s='r',t=t,r=r,r1=r1,r2=r2,vx=vx,vy=vy,vxy=vxy,Ti=Ti,I_n=In,In=In,aw=aw,w1=w1,w2=w2,a_c=a_c,a_t=a_t,ax=ax,ay=ay,typeI='',mu=mu, Nm=Nm,Itype='p',xI=0):
         
