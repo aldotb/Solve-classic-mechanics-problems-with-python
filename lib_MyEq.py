@@ -1567,6 +1567,20 @@ class MyEq:
 
         
     def doit(self,kname='',kshow=True,c1=0,**kwargs):
+        if self.type=='diff':
+            if len(kwargs)==0:
+                kres=self.ksym
+                var2=self.var2
+                kres2=diff(kres,var2)
+                self.update(kres2)
+                self.type='F'
+                s1=self.name
+                s2=alphaname(var2)
+                kname=s1+'_{('+s2+')}'
+                self.name=kname
+                self.s()
+                return    
+            
         if self.type=='I':
             if len(kwargs)>0:
                 ee=MyEq(self.ksym,kshow=False)
@@ -2659,6 +2673,13 @@ def MaQ (P,kname='Ma',kope='',kshow=True):
         kres=kres*P.aw
     return MyEq(kres, kname, kope=kope,ktype='Ph',Pobj=P,kshow=kshow)
 
+def eQdiff(ee,kname='Q',var2=''):
+    
+    kres=ee.ksym
+         
+    if var2=='':
+        var2=ee.var2
+    return MyEq(kres,kname,var2=var2,ktype='diff')
 def eQrot (P,kname='eqR',kope='s',andsolve='',set_dire='positive'):
     ''' 
         Data from : 
@@ -3168,6 +3189,7 @@ class eQ(MyEq):
         
 
         self.histo = unisymbols(opemat(self.ksym, kope=kope))
+         
         if kshow:
             if self.name == '':
                 display(Math(latex(self.ksym)))
@@ -3195,9 +3217,9 @@ class eQ(MyEq):
         # self.s()
 
     def __call__(self,*args,**kwargs):
-        print('zz')
+         
         if len(args)==1:
-            print(1)
+             
             if self.type=='V':
             
                 kres=args[0]
@@ -3213,9 +3235,9 @@ class eQ(MyEq):
                 self.s()
                 return
         if len(args)==0 and len(kwargs)==0:   
-            print(2)
+             
             if self.type=='Z':
-                print('ss')
+                 
                 mm=['e1','e2','e3']
                 vv=[e1,e2,e3]
                 kres=self.ssym
@@ -3235,26 +3257,25 @@ class eQ(MyEq):
                 return self.ksym
                 
         if self.ksym=='' and len(args)==0:
-            print(3)
-            print ('si')
+             
             return
               
         elif self.ksym=='' and len(args)==1:
-            print(4)
+             
             self.ksym=args[0]
             self.s()
             return        
         elif len(args)==1 and  args[0]==self.ksym:
-            print(5)
+              
             self.s()
         else:
             if len(args)==1 and args[0]=='cls':
-                print(6)
+                 
                 self.ksym=''
                 return
             
             if len(args)==1 and len(kwargs)==0:
-                print(7)
+                 
                 var2=self.var2
                 ksym=self.ksym
                 return ksym.subs(var2,args[0])
@@ -3313,7 +3334,61 @@ class eQ(MyEq):
                 
 
         return self.ksym
+    def __add__(self, other):
+        """ Returns the vector addition of self and other """
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym + other.ksym
+        else:
+            kres = self.ksym + other 
+        return kres
+    def __radd__(self, other):
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym + other.ksym
+        else:
+            kres = self.ksym + other 
+        return kres   
+        
+    def __sub__(self, other):
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym - other.ksym
+        else:
+            kres = self.ksym - other 
+        return kres
+    def __rsub__(self, other):
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym - other.ksym
+        else:
+            kres = self.ksym - other 
+        return kres    
+    def __mul__(self, other):
+        """ Returns the vector addition of self and other """
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym*other.ksym
+        else:
+            kres = self.ksym*other 
+        return kres
+    def __rmul__(self, other):
+        """ Returns the vector addition of self and other """
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym*other.ksym
+        else:
+            kres = self.ksym*other 
+        return kres
+       
+ 
+    def __truediv__(self, other):
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym/other.ksym 
+        else:
+            kres = self.ksym/other 
+        return kres
 
+    def __rtruediv__(self, other):
+        if type(other)==MyEq or type(other)==eQ:
+            kres = self.ksym/other.ksym 
+        else:
+            kres = self.ksym/other 
+        return kres 
     def updatee(self):
         mm=['e8','e7','e6','e5','e4','e3','e2','e1']
         vv=[e8,e7,e6,e5,e4,e3,e2,e1]
@@ -3325,6 +3400,7 @@ class eQ(MyEq):
                 else:
                     sres=sres.replace(i,str(j.ksym))
         self.ksym=eval(sres)            
+    
         
         
 def reset_eq(*args):
