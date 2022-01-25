@@ -306,6 +306,14 @@ def opemat(ksym,kope=''):
                     kres=kres-1
                 else:
                     kres=kill_root_poly(ksym)
+        if i=='-' :
+            kres2=kres
+            try:
+                kres2=kpow(kres,-1)
+                kres2=opemat(kres2,'r')
+                kres=kpow(kres2,-1)
+            except:    
+                done=False
                 
         if i=='2' :
             kres=kpow(kres,2)

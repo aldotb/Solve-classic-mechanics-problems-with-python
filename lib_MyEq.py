@@ -12,10 +12,11 @@ C1,C2,C3,C4,t,x,y,z=symbols('C1 C2 C3 C4 t x y z')
 dataQ=[]
 e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12=symbols('e1 e2 e3 e4 e5  e6 e7 e8 e9 e10 e11 e12')
 
+    
         
             
 class MyEq:
-    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym=''):
+    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',init=True):
         self.t=ktype
         self.type=ktype
         self.kinte=''
@@ -48,8 +49,9 @@ class MyEq:
         self.oldprimi=''
         self.Pobj=Pobj
         self.ssym=ssym
-        
          
+        self.kshow=kshow
+        self.init=init 
             
          
         if type(ksym)==MyEq:
@@ -108,7 +110,7 @@ class MyEq:
          
             
         if ktype=='diff' or ktype=='diff2':
-            f=Function(var1)(var2)
+            f=Function(kname)(var2)
             kres=self.ksym
             kres=kres.subs(var1,f)
             var2=self.var2
@@ -160,7 +162,12 @@ class MyEq:
                 dataQ.append(self)
         self.ksym=sympify(str(self.ksym), locals={str(var2): var2})    
     def __call__(self, kname='',kop='',kupdate=False,*args,**kwargs):
-         
+        if self.init==False:
+            self.ksym=kname
+            self.init=True
+            self.s()
+            return
+            
         if type(kname)!=str and len(kwargs)==0 and len(args)==0:
              
             var2=self.var2
@@ -248,6 +255,8 @@ class MyEq:
             kres = self.ksym + other.ksym
         else:
             kres = self.ksym + other 
+        if type(kres)==MyEq:
+            kres.s()
         return kres
     def __radd__(self, other):
         if type(other)==MyEq or type(other)==eQ:
@@ -371,6 +380,7 @@ class MyEq:
         sR = self.name + ' ='
 
     def s2(self):
+         
         kres=self.ksym
         if self.type=='Diff':
              
@@ -1131,7 +1141,15 @@ class MyEq:
         if Is_Mono(ksym):
             mm=fpoly(ksym,'list')
             return mm[1]
-
+    def get_sitem(self,vv=[]):
+        mm=self.list()
+        qq=len(mm) 
+        ksum=0
+        for i in range(qq):
+            if i in vv:
+                ksum+=mm[i]
+        return ksum        
+                
     def part(self, vec):
 
         kres = self.ksym
@@ -1167,6 +1185,9 @@ class MyEq:
         
         
     def solve(self, kvar, kname='', kremp=False, kope='', korden='',ktype='P',var2='',Bag=''):
+        if type(kvar)=='str' and kname=='':
+            kname=kvar
+            
         if str(kvar)=='None':
             kname=symbols(kname)
         keq = self.ksym
@@ -1241,7 +1262,23 @@ class MyEq:
             self.s()
         except:
             self.s()
-    
+    def toEqual(self,items,kkname=''):
+        mm=self.list()
+        kres1=0
+        kres2=0
+        qq=len(mm)
+        for i in range(qq):
+            if i in items:
+                kres1+=mm[i]
+            else:
+                kres2+=mm[i]
+        kname=self.name
+        kname1=kname+'1'
+        kname2=kname+'2'
+        kname1=MyEq(kres1,kname1,kshow=False)
+        kname2=MyEq(kres2,kname2,kshow=False)
+        return MyEqEq(kname1,kname2,kname=kkname)
+        
     def opematsec(self, kope=''):  # equal to pemat but secuential
         kres = unisymbols(self.ksym)
         kres = opematsec(kres, kope=kope)
@@ -2539,7 +2576,33 @@ class MyEqEq:
             self.e2.reduFac()
         self.s()
     
-    
+    def sin2cos(self, angu, korden=2, kope='', kop='RL'):
+        if 'L' in kop:
+            self.e1.set(kpow(sin(angu), 3), (1 - kpow(cos(angu), 2)) * cos(angu), kshow=False)
+            kres = self.e1.ksym
+            kres = sin2cos(kres, angu=angu, korden=korden, kope=kope)
+            self.e1.update(kres)
+        if 'R' in kop:
+            self.e2.set(kpow(sin(angu), 3), (1 - kpow(cos(angu), 2)) * cos(angu), kshow=False)
+            kres = self.e2.ksym
+            kres = sin2cos(kres, angu=angu, korden=korden, kope=kope)
+            self.e2.update(kres)    
+        self.s()
+         
+    def cos2sin(self, angu, korden=2, kope='', kop='RL'):
+        if 'L' in kop:
+            self.e1.set(kpow(cos(angu), 3), (1 - kpow(sin(angu), 2)) * sin(angu), kshow=False)
+            kres = self.e1.ksym
+            kres = cos2sin(kres, angu=angu, korden=korden, kope=kope)
+            self.e1.update(kres)
+        if 'R' in kop:
+            self.e2.set(kpow(cos(angu), 3), (1 - kpow(sin(angu), 2)) * sin(angu), kshow=False)
+            kres = self.e2.ksym
+            kres = cos2sin(kres, angu=angu, korden=korden, kope=kope)
+            self.e2.update(kres)    
+
+            self.s()
+            
     def solve(self,kval,kname='',kope='', korden=''): 
         kres=self.e1.v-self.e2.v
         e0=e0Q(kres,kshow=False)
@@ -2547,7 +2610,9 @@ class MyEqEq:
             return e0.solve(kval,kope=kope,korden=korden)
         else:
             return e0.solve(kval,kd=kname, kope=kope, korden=korden)
-
+    def toMyEq(self,kname):
+        kname=MyEq(self.e1.ksym-self.e2.ksym,kname=kname)
+        return kname
 #  New Eqes
 
 class MyBag:
@@ -2641,8 +2706,7 @@ def aryQ(P,ang=0, kname='ary', kope=''):
     yy=P.y_res()
     kres=(yy*cos(ang)-xx*sin(ang))/P.m
     return MyEq(kres, kname, kope=kope,ktype='Ph',Pobj=P)     
-    
-    
+
 def ToQ(P, kname='To', kope='', x1=0, y1=0,kshow=True,forza_pos=True):
     kres=P.torque(x1, y1)
     kres=kres*(signo(kres))
@@ -3157,6 +3221,7 @@ class eQ(MyEq):
         self.varx=varx
         self.vary=vary
         self.varz=varz
+        self.kshow=kshow
         if type(ksym)==str:
             self.ksym=ksym
             self.type='Z'
@@ -3190,12 +3255,7 @@ class eQ(MyEq):
 
         self.histo = unisymbols(opemat(self.ksym, kope=kope))
          
-        if kshow:
-            if self.name == '':
-                display(Math(latex(self.ksym)))
-            else:
-                sR = self.name + ' ='
-                display(Math(sR + latex(self.ksym)))
+        
          
         self.EqDiff=''
         self.EqInte=''
@@ -3213,8 +3273,13 @@ class eQ(MyEq):
             self.x2=t
             if kvar2!='':
                 self.x2=kvar2
+        if kshow:
+            if self.name == '':
+                display(Math(latex(self.ksym)))
+            else:
+                sR = self.name + ' ='
+                display(Math(sR + latex(self.ksym)))
         
-        # self.s()
 
     def __call__(self,*args,**kwargs):
          
@@ -3231,8 +3296,8 @@ class eQ(MyEq):
                     self.type='C'
                     self.ssym=''
                     self.ksym=kres
-                    
-                self.s()
+                    self.s()
+                 
                 return
         if len(args)==0 and len(kwargs)==0:   
              
@@ -3409,18 +3474,6 @@ def reset_eq(*args):
         i.type='V'
         
         
-e1=eQ(ksym='',kname='e1',kshow=False,ktype='V')   
-e2=eQ(ksym='',kname='e2',kshow=False,ktype='V')  
-e3=eQ(ksym='',kname='e3',kshow=False,ktype='V')  
-e4=eQ(ksym='',kname='e4',kshow=False,ktype='V')  
-e5=eQ(ksym='',kname='e5',kshow=False,ktype='V')   
-e6=eQ(ksym='',kname='e6',kshow=False,ktype='V')   
-e7=eQ(ksym='',kname='e7',kshow=False,ktype='V') 
-e8=eQ(ksym='',kname='e8',kshow=False,ktype='V')
-e9=eQ(ksym='',kname='e9',kshow=False,ktype='V')  
-e10=eQ(ksym='',kname='e10',kshow=False,ktype='V')   
-e11=eQ(ksym='',kname='e11',kshow=False,ktype='V')  
-e12=eQ(ksym='',kname='e12',kshow=False,ktype='V')
 
 def eQSolver(*args):
     vec1=[]
@@ -3464,7 +3517,7 @@ def eQSolver(*args):
             kres.append(j)
         return(kres)
     
-def solvelin(*args,kope='',Eq=False):  #solveLinearSys(e1,e2,mu1,mu2)
+def solvelin(*args,kope='',Eq=True):  #solveLinearSys(e1,e2,mu1,mu2)
         mS=[]
         mV=[]
         
@@ -3591,7 +3644,7 @@ def upgradeList(*args,kshow=True,andsolve=[],kope=''):
     vv.s()        
     return vv     
 
-def Area_func(ee1,ee2,var=x,cota=''):
+def Area_func(ee1,ee2,var=x,cota='',kope=''):
     kres=0
     if cota=='':
         e1=MyEq(ee2-ee1,var2=var,kshow=False)
@@ -3637,7 +3690,8 @@ def Area_func(ee1,ee2,var=x,cota=''):
         kres=kres+eI1()-eI2() 
     ee=MyEq(kres,kname='Area',var2=var)
     kk=ee.ksym
-    ee.ksym=kk.doit() 
+    ee.ksym=kk.doit(kope=kope)
+        
     ee.s() 
 
     #  FUNCTIONES algorith
@@ -3654,6 +3708,9 @@ def get_intersec_2func(y1,y2,var=x): # y1(x), y2(x), return intersec y1 and y2
 
 
 
+def reset_ee(*args):
+    for i in args:
+        i.init=False
 
 
 

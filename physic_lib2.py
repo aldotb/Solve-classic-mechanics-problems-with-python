@@ -21,6 +21,16 @@ yp,xp,pp=symbols("y' x' p'")
 # diff variables
 
 dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV')   
+
+e1=MyEq(0,kname='e1',kshow=False,ktype='C',init=False)
+e2=MyEq(0,kname='e2',kshow=False,ktype='C',init=False)  
+e3=MyEq(0,kname='e3',kshow=False,ktype='C',init=False)  
+e4=MyEq(0,kname='e4',kshow=False,ktype='C',init=False)  
+e5=MyEq(0,kname='e5',kshow=False,ktype='C',init=False)   
+e6=MyEq(0,kname='e6',kshow=False,ktype='C',init=False)   
+e7=MyEq(0,kname='e7',kshow=False,ktype='C',init=False) 
+e8=MyEq(0,kname='e8',kshow=False,ktype='C',init=False)
+e9=MyEq(0,kname='e9',kshow=False,ktype='C',init=False)
 class mparticle:
     def __init__(self,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=a,g=g,v=v,w=w,ac=ac,s='r',t=t,r=r,r1=r1,r2=r2,vx=vx,vy=vy,vxy=vxy,Ti=Ti,I_n=In,In=In,aw=aw,w1=w1,w2=w2,a_c=a_c,a_t=a_t,ax=ax,ay=ay,typeI='',mu=mu, Nm=Nm,Itype='p',xI=0):
         
