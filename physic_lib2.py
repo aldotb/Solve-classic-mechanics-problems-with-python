@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from IPython.display import Image, display
  
-
+ 
 
 from sympy import symbols
 m,m1,m2,m3,m4,M,g,x,x1,x2,y,y1,y2,X,Y,a,a1,a2,a3,v,v1,v2,M1,M2,M3= symbols('m m1 m2 m3 m4 M g x x1 x2 y y1 y2 X Y a a1 a2 a3 v v1 v2 M1 M2 M3')
@@ -21,7 +21,7 @@ yp,xp,pp=symbols("y' x' p'")
 # diff variables
 
 dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV')   
-
+ 
 e1=MyEq(0,kname='e1',kshow=False,ktype='C',init=False)
 e2=MyEq(0,kname='e2',kshow=False,ktype='C',init=False)  
 e3=MyEq(0,kname='e3',kshow=False,ktype='C',init=False)  
@@ -1945,4 +1945,21 @@ def get_Iner_func(ktype='',mm=0,rr=0): # generar dormula de Inercia
     else:
         return 0
         
+def reset_ee(*args):
+     
+    for i in args:
+        i.init=False    
+
+
+
+
+
+
+
+
+
+
+        
+
+
     

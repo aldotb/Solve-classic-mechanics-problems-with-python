@@ -7,16 +7,21 @@ from libaldo_show import *
 from lib_MyData import * 
 import copy
 #from lib_Func import * 
- 
+
+
 C1,C2,C3,C4,t,x,y,z=symbols('C1 C2 C3 C4 t x y z')
 dataQ=[]
 e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12=symbols('e1 e2 e3 e4 e5  e6 e7 e8 e9 e10 e11 e12')
 
-    
+
+        
         
             
 class MyEq:
-    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',init=True):
+    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',init=True,kfull=True):
+        
+        if ksym!=0:
+            datap.inputData(kname,ksym,ktype,True)
         self.t=ktype
         self.type=ktype
         self.kinte=''
@@ -2661,12 +2666,6 @@ def creaQ(ksym,kope):
         if vec[1]=='F':
          return MyEq(ksym,vec[0],ktype='F',var2=vec[2])
          
-            
-    
-    
-
-    
-
 
 def FxQ(P, kname='Fx', kope=''):
     return MyEq(P.x_res(), kname, kope=kope,ktype='Ph',Pobj=P)
@@ -2858,25 +2857,27 @@ def XcQ(P, kname='', kope=''):
         return MyEq(P.cgravedad('x'),'X_c', kope=kope,ktype='Ph')  
     else:
         return MyEq(P.cgravedad('x'),kname, kope=kope)               
-def e0Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e0', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e1Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e1', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e2Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e2', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e3Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e3', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e4Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e4', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e5Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e5', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e6Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e6', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e7Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e7', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e8Q(ksym, kope='', kshow=True,var2=t):
-    return MyEq(ksym, 'e8', kope=kope, kshow=kshow,ktype='C',var2='t')
 
+ 
+def e0Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e0', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e1Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e1', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e2Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e2', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e3Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e3', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e4Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e4', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e5Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e5', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e6Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e6', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e7Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e7', kope=kope, kshow=kshow,ktype='C',var2=var2)
+def e8Q(ksym, kope='', kshow=True,var2=t,kfull=False):
+    return MyEq(ksym, 'e8', kope=kope, kshow=kshow,ktype='C',var2='t')
+ 
     
 ###############################################
 #  Mass center Inertia
@@ -3709,18 +3710,10 @@ def get_intersec_2func(y1,y2,var=x): # y1(x), y2(x), return intersec y1 and y2
 
 
 def reset_ee(*args):
+    eeFull=[]
     for i in args:
         i.init=False
-
-
-
-
-
-
-
-
-
-
-
-
+        
+        
+        
     

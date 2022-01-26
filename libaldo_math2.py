@@ -1225,10 +1225,8 @@ def sqrt2fracpow(expr):
     
 def signed_sqrt(expr):  # This function from WenyinWei founded in GitHub
     """Signed sqrt operator
-
     Args:
         expr (sympy.expr): sympy expression
-
     Returns:
         sympy.expr: A simplified expression
     """
@@ -1470,18 +1468,19 @@ def get_ddiff_name(k1,k2):
     tt='d'+k2+'^{2}'
     xt='\\frac{'+xx+'}{'+tt+'}'
     dxt=symbols(xt)
-    return dxt    
-
-
-def put_dot_in(ssym):  
-    kres=ssym
-    kname='\dot{'+kres+'}'
-    return symbols(kname)
+    return dxt  
     
-def put_ddot_in(ssym):
-    kres=ssym 
-    kname='\ddot{'+kres+'}'
-    return symbols(kname)
+class datalab:
+    def __init__(self): 
+        self.name=[]
+        self.value=[]
+        self.type=[]
+        self.activo=[]
     
-def kprint(val):
-    sE([val])    
+    def inputData(self,kname='',kvalue='',ktype='ee',kactivo='True'):
+        self.name.append(kname)
+        self.value.append(kvalue)
+        self.type.append(ktype)
+        self.activo.append(kactivo)   
+
+datap=datalab()
