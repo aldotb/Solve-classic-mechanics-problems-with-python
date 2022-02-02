@@ -7,7 +7,14 @@ from libaldo_show import *
 from lib_MyData import * 
 import copy
 #from lib_Func import * 
-
+import dill                            #pip install dill --user
+filename = 'workspace.pkl'
+def savework():
+    dill.dump_session(filename)
+def loadwork():
+    dill.load_session(filename)
+# and to load the session again:
+ 
 
 C1,C2,C3,C4,t,x,y,z=symbols('C1 C2 C3 C4 t x y z')
 dataQ=[]
@@ -18,7 +25,7 @@ e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12=symbols('e1 e2 e3 e4 e5  e6 e7 e8 e9 e10 
         
             
 class MyEq:
-    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',init=True,kfull=True):
+    def __init__(self, ksym, kname='',var2=t, var1=x,varx=x,vary=y,varz=z,kp=False, kope='', kshow=True,ktype='P',xx='' ,dtype=1,depen=False,x1='',x2=0,y1='',y2=0,z1='',z2=0,Pobj='',ee='',ssym='',init=True,kfull=True,andsolve=''):
         
         if ksym!=0:
             datap.inputData(kname,ksym,ktype,True)
@@ -160,8 +167,14 @@ class MyEq:
                     display(Math(sR + latex(kres)))
         
         
-
-        # self.s()
+        if andsolve!='':
+            kval=andsolve
+            kname=str(andsolve)
+             
+            kres=csolve(self.ksym,kval)
+            kres=opemat(kres,kope)
+            andsolve=MyEq(kres,kname)
+            return (andsolve) 
         if dtype==1:
             if self not in dataQ and self.name!='': 
                 dataQ.append(self)
@@ -364,6 +377,10 @@ class MyEq:
         self.Adiff=Derivative(self.ksym, self.varx)
         
     def upgrade(self,*args,kope='',kshow=True,**kwargs ):
+        if len(args)==1:
+            if type(args[0])==list:
+                args=args[0]
+                
         for i in args:
             kname=i.name
             self.set(kname,i,kshow=False,kope=kope)
@@ -659,7 +676,7 @@ class MyEq:
                 ee.s()
                 return ee 
             else:
-                return ee.ksym
+                ee.s()
             
         else:    
             self.s()
@@ -667,7 +684,7 @@ class MyEq:
     def set(self, knom='', kval='', kshow=True, kope='', kret=False,andsolve=[],Bag='',**kwargs):
         if len(kwargs)>0 and knom=='' and kval=='':
             for key, value in kwargs.items():
-                    self.set(parse_expr(key),value,kshow=False)
+                    self.set(parse_expr(key),value,kshow=False,kope=kope)
             self.s()
             return    
             
@@ -699,13 +716,13 @@ class MyEq:
         qk=len(kwargs)
         if qk>0:
             for key, value in kwargs.items():
-                self.set(parse_expr(key),value,kshow=False)
+                self.set(parse_expr(key),value,kshow=False,kope=kope)
                 try:
                     self.primi=self.primi.subs(parse_expr(key),value)
                 except:
                     done=False
             if Bag!='':
-                self.upBag(Bag,kshow=False)
+                self.upBag(Bag,kshow=False,kope=kope)
             if kshow:
                 self.s()    
             
@@ -718,10 +735,11 @@ class MyEq:
                 else:
                     self.setValue(knom=knom, kval=kval, kshow=False, kope=kope, kret=kret)
                     
-                    ee=MyEq(self.solve(andsolve[0]),str(andsolve[1]))
+                    ee=MyEq(opemat(self.solve(andsolve[0]),kope=kope),str(andsolve[1]))
+                    
                     return ee
                 if Bag!='':
-                    ee.upBag(Bag)
+                    ee.upBag(Bag,kope=kope)
                 return ee    
             
             else:
@@ -936,7 +954,7 @@ class MyEq:
         
         return self.angTan(**kwargs)
         
-    def angTan(self, **kwargs):
+    def angTan(self,kname='', **kwargs):
         kres = self.ksym
         var2 = self.var2
         kres = kres.diff(var2)
@@ -947,19 +965,32 @@ class MyEq:
                 mm=fpoly(kres,'list')
                 qq=len(mm)
                 kres=mm[qq-1]
-         
-        return atan(kres)
+        if kname!='':
+            return MyEq(atan(kres),kname) 
+        else:
+            return atan(kres)
 
     def get_aOrto(self,kname='',**kwargs):
         if kname!='':
             return MyEq(self.angOrto(**kwargs),kname=kname)
         return self.angOrto(**kwargs)
         
-    def angOrto(self, **kwargs):
+    def angOrto(self,kname='', **kwargs):
         kres =self.angTan(**kwargs)
+        if kname!='':
+            return MyEq(kres,kname)
+        else:    
+            return  (kres+pi/2)
+    
+    def ang_vecTan(self,**kwargs):
+        kres=ee.diff(**kwargs)
+        kres=atan(kres)
+        return kres 
+    def ang_vecOrto(ee,**kwargs):
+        kres=ee.diff(**kwargs)
+        kres=atan(kres)
+        return kres+pi/2 
         
-        return  (kres+pi/2)
-
     def Is_Poly(self):
         return Is_Poly(self.ksym)
 
@@ -1165,7 +1196,38 @@ class MyEq:
 
     def solvediff(self, kvar, kd='', kremp=False, kope='', korden=''):
         return self.solve(kvar=kvar.diff(), kd=kd, kremp=kremp, kope=kope, korden=korden)
-
+    
+    def solve_if_and(self,svar,eqv=0,kope='',**kwargs):
+        r''' 
+        solve variable from  MyEq 
+        parameters :
+            svar :type str , variablesin side the Eq taht we will find
+            eqv  :type nemeric or symbols , if the value of all Eq
+                  defaul Eq=0
+            kwargs: t=0,g=10... etc
+        return MyEq of svar
+        example:
+        **********
+        R(t)= C1 + C2*t + g*sin(t*w)/w**2
+        C1= solve_if_and('C1',L,t=0) 
+        return:  C1=L
+         
+        R.upgrade(C1)
+        return:  C2*t + L + g*sin(t*w)/w**2
+        
+        C2=solve_if_and(R,'C2',t=2)
+        return:-L/2 - g*sin(2*w)/(2*w**2)
+        
+        R.upgrade(C2)
+        return: L + g*sin(t*w)/w**2 + t*(-L/2 - g*sin(2*w)/(2*w**2))
+        
+        '''
+        kres=self.ksym-eqv
+        if len(kwargs)>0:
+            kres=self(**kwargs)-eqv
+        nee=MyEq(kres,kname=svar,kshow=False,kope=kope)
+        return nee.ssolve(svar)
+        
     def solve_if(self,ksym,kname='',andset='', **kwargs):
         kres=self.ksym
         sname=self.name
@@ -1187,11 +1249,25 @@ class MyEq:
             else:
                 ee1=MyEq(kres,kname,var2=self.var2)
                 return ee1
-        
-        
+    def get_symbol_in_ee(self,svar=''):
+        mm=self.free()
+        for i in mm:
+            if i.name==svar:
+                return i
+        return svar
+
+                
+    def ssolve(self,kname):
+         
+        kvar=self.get_symbol_in_ee(svar=kname)
+        return self.solve( kvar, kname=kname) 
+     
     def solve(self, kvar, kname='', kremp=False, kope='', korden='',ktype='P',var2='',Bag=''):
+        mm=self.ksym
+        self.ksym=opemat(mm,'s')
         if type(kvar)=='str' and kname=='':
             kname=kvar
+            kvar=parse_expr(kname)
             
         if str(kvar)=='None':
             kname=symbols(kname)
@@ -1200,18 +1276,22 @@ class MyEq:
         kres = csolve(keq, kvar, kope=kope, korden=korden)
         if kres==[]:
             kres = csolve(keq, kname, kope=kope, korden=korden)
+            if kres==[]:
+                kres=presolve(self.ksym,kvar)
+                
         if self.type=='Ph':
-            self.Pobj.store_val(kvar,kres)
-            mm= self.Pobj.F
-            qq=len(mm)
-            for i in range (qq):
-                pkres=mm[i][0]
-                try:
-                    pkres=pkres.subs(kvar,kres)
-                except:
-                    done=False
-                mm[i][0]=pkres
-            self.Pobj.F=mm
+            if not str(kvar) in 'alphaalpha1alpha2alpha3betha1betha2betha3' :
+                self.Pobj.store_val(kvar,kres)
+                mm= self.Pobj.F
+                qq=len(mm)
+                for i in range (qq):
+                    pkres=mm[i][0]
+                    try:
+                        pkres=pkres.subs(kvar,kres)
+                    except:
+                        done=False
+                    mm[i][0]=pkres
+                self.Pobj.F=mm
         if kname!='':
             if type(kres)==list:
                 if len(kres)>1:
@@ -1243,21 +1323,27 @@ class MyEq:
         else:
             return kres
 
-
+    def ssolveR(self,kname): 
+        kvar=self.get_symbol_in_ee(svar=kname)
+        return self.solveR( kvar, kd=kname)
+        
     def solveR(self, kvar, kd='', kremp=False, kope='', korden='',Bag=''):
         if Bag!='':
             self.upBag(Bag=Bag,kshow=False)
         keq = self.ksym
-        # kvar=unisymbols(kvar)
-        kres = csolveR(keq, kvar, kope=kope)
-        if kres==[]:
+         
+        try:
+            kres = csolveR(keq, kvar, kope=kope)
+        except:
             kres = csolve(keq, kname, kope=kope, korden=korden)
         if kd != '':
             return MyEq(opemat(kres,kope=kope), kd,var2=self.var2)
-
-        if kremp:
-            nkres = kres.subs(kvar, kres)
-        return opemat(kres,kope=kope)
+        else:
+            return kres
+        
+         
+        
+        
     def toFoat(self):
         kres=self.ksym
         try:
@@ -1817,33 +1903,28 @@ class MyEq:
         self.update(kres)
         self.s()
     
-    def diff(self,*args):
+    def diff(self,*args,**kwargs):
         kname=''
-        mm=[]
+        var=self.var2
         kres=self.ksym
         for i in args:
             if type(i)==str:
                 kname=i 
             else:
-                mm.append(i)
-        for i in mm:
-            kres=kres.diff(i)
-        if kname=='':
-            return kres
-        else:
-            ee=MyEq(kres,kname,var2=self.var2)
+                var=i
+        kres=diff(kres,var)        
+        if len(kwargs)>0:        
+            ee=MyEq(kres,kshow=False)        
+            for key, value in kwargs.items():
+                ee.set(parse_expr(key),value,kshow=False)
+            kres=ee.ksym
+        if kname!='':
+            ee=MyEq(kres,kname)
             return ee
-                
-                
+        else:
+            return kres
         
         
-        
-           
-         
-             
-            
-            
-    #
     def Length(self, kvar):
         kres = self.v
         kdiff = kres.diff(kvar)
@@ -2028,11 +2109,39 @@ class MyEq:
         kk=MyFunc(knom,ksym,vV)
         return kk
 
-    # def Integral(self,kvar,kname='',x1='',x2='',kope='',kshow=True,Bag='',kcero=False):
-        # ksym=self.ksym
-        # ee=MyInteger(ksym,kvar=kvar,kname=kname,x1=x1,x2=x2,kope=kope,kshow=False,Bag=Bag,kcero=kcero)
-        # ee.s()
-        # return ee
+    def newEq(self,kname='',kope='',**kwargs):
+        ee=MyEq(self.ksym,kname=kname,kshow=False)
+        if len(kwargs)>0 :
+            for key, value in kwargs.items():
+                    ee.set(parse_expr(key),value,kshow=False,kope=kope)
+        
+        ee.s()
+        return ee
+        
+    def findSubFunc(self,sval,inside=''):
+        ksym=self.ksym
+        kini=0
+        kini2=0
+        sroot=[]
+        done=0
+        while kini<len(str(ksym)) and kini2!=-1:
+            kini2,sword=in_ope_string(ksym,sval,kini)
+            if kini2!=-1:
+                if inside!='':
+                    if inside in sword:
+                        return sword
+                else:
+                    return sword
+            kini=kini2+len(sval)
+        return sroot 
+    
+    def killSimpleRoot(self):
+        ss=self.findSubFunc('sqrt','**2')
+        sm=get_midle_str(ss,'sqrt','**2')
+        exp=str(self.ksym)
+        exp=exp.replace(ss,sm)
+        self.ksym=parse_expr(exp)
+        self.s()    
 ###########################################
 #               END MyEq Class
 ###########################################        
@@ -2135,7 +2244,7 @@ def My2Integer(*args,**kwargs):
 
 
 class MyDiff:
-    def __init__(self,ksym,kvar,kname='',kope='',kshow=True,Bag='',kcero=False,ktype='linear',ksolu=''):
+    def __init__(self,ksym,kname='',kvar=t,kope='',kshow=True,Bag='',kcero=False,ktype='linear',ksolu=''):
         f=symbols(kname, cls=Function)
         self.ksym=unisymbols(ksym)
         self.kvar=unisymbols(kvar)
@@ -2424,7 +2533,7 @@ class MyDiff:
          
         self.updateDiff()
         
-    def dsolve(self,Vv='',var2=''):
+    def dsolve(self,Vv=''):
         
             
         f=  symbols(self.name, cls=Function)
@@ -2443,13 +2552,16 @@ class MyDiff:
         if 'Piecewise(' in skres:
             kres=fix_otherwise(kres)
             kres=unisymbols(kres)
+        
         if Vv=='':
-            return kres
+            kname=self.name
+             
         else:
-            e1=MyEq(kres,Vv,var2=var2,kshow=False)
-            e1.norm_variable()
-            e1.s()
-            return e1
+            kname=Vv
+        e1=MyEq(kres,kname,var2=self.kvar,kshow=False,ktype='F')
+        e1.norm_variable()
+        e1.s()
+        return e1
             
         
              
@@ -2669,7 +2781,8 @@ def creaQ(ksym,kope):
 
 def FxQ(P, kname='Fx', kope=''):
     return MyEq(P.x_res(), kname, kope=kope,ktype='Ph',Pobj=P)
-    
+
+     
 def FrxQ(P,ang=0, kname='Frx', kope=''):
     xx=P.x_res()
     yy=P.y_res()
@@ -2859,24 +2972,24 @@ def XcQ(P, kname='', kope=''):
         return MyEq(P.cgravedad('x'),kname, kope=kope)               
 
  
-def e0Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e0', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e1Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e1', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e2Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e2', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e3Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e3', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e4Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e4', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e5Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e5', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e6Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e6', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e7Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e7', kope=kope, kshow=kshow,ktype='C',var2=var2)
-def e8Q(ksym, kope='', kshow=True,var2=t,kfull=False):
-    return MyEq(ksym, 'e8', kope=kope, kshow=kshow,ktype='C',var2='t')
+def e0Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e0', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e1Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e1', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e2Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e2', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e3Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e3', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e4Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e4', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e5Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e5', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e6Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e6', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e7Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e7', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
+def e8Q(ksym, kope='', kshow=True,var2=t,kfull=False,andsolve=''):
+    return MyEq(ksym, 'e8', kope=kope, kshow=kshow,ktype='C',var2=var2,andsolve=andsolve)
  
     
 ###############################################
@@ -3702,12 +3815,9 @@ def func_sig(kf,x1,x2,var=x):
     xx=(x2-x1)/2
     return ee(xx) 
 
-
 def get_intersec_2func(y1,y2,var=x): # y1(x), y2(x), return intersec y1 and y2
     ee=MyEq(y1-y2,kshow=False) # return vector
     return ee.solve(var) 
-
-
 
 def reset_ee(*args):
     eeFull=[]
@@ -3715,5 +3825,51 @@ def reset_ee(*args):
         i.init=False
         
         
-        
+def Upgrade(*args,kope=''):
+    newa=[]
+    for i in args:
+        if type(i)==MyEq:
+            if i.ksym!=0:
+                newa.append(i)
+    args=newa        
+    antes=[]
+    for i in args:
+        antes.append(str(i))
+    qq=len(args)
+    for i in range(qq):
+         
+        mm=[]
+        for j in range(qq):
+            if j!=i:
+                mm.append(args[j])
+        args[i].upgrade(mm,kshow=False,kope=kope)        
+    for i,j in zip(args,antes):
+        if str(i)!=newa:
+            if i.ksym!=0:
+                i.s()
+
+def presolve(ksym,val):
+    kres=solve(ksym,val)
+    if kres==[]:
+        try:
+            kres=solve(opemat(ksym,'esf'),val)
+            if kres!=[]:
+                return kres
+            else:
+                ksym=factorSec(ksym,val)
+                kres=solve(opemat(ksym,'esf'),val)
+                if kres!=[]:
+                    return kres
+        except:           
+            done=False    
+    return kres
+
+def eQsolve(ksym,kname,kope=''):
+    kval=parse_expr(kname)
+    kres=csolve(ksym,kval)
+    kres=opemat(kres,kope)
+    kval=MyEq(kres,kname)    
+    return kval          
     
+
+   

@@ -8,31 +8,32 @@ from IPython.display import Image, display
  
 
 from sympy import symbols
-m,m1,m2,m3,m4,M,g,x,x1,x2,y,y1,y2,X,Y,a,a1,a2,a3,v,v1,v2,M1,M2,M3= symbols('m m1 m2 m3 m4 M g x x1 x2 y y1 y2 X Y a a1 a2 a3 v v1 v2 M1 M2 M3')
-w,w1,w2,aw,aw1,aw2,F,F1,F2,Rx,Ry,r,r1,r2,R,ax,ay,V= symbols('w w1 w2 aw aw1 aw2 F F1 F2 R_x R_y r r1 r2 R ax ay V')
-mu,mu1,mu2,fr,fr1,fr2,N1,N2,Nm, L,L1,L2,h,h1,h2,b,H= symbols('mu  mu1 mu2  fr fr1 fr2 N1 N2 Nm  L L1 L2 h h1 h2 b H')
+m,m1,m2,m3,m4,M,g,x,x1,x2,y,y1,y2,X,Y,a,a1,a2,a3,v,v1,v2,M1,M2,M3, V ,V1 ,V2= symbols('m m1 m2 m3 m4 M g x x1 x2 y y1 y2 X Y a a1 a2 a3 v v1 v2 M1 M2 M3 V V1 V2 ')
+w,w1,w2,aw,aw1,aw2,F,F1,F2,Rx,Ry,r,r1,r2,R,ax,ax1,ax2,ay,ay1,ay2= symbols('w w1 w2 aw aw1 aw2 F F1 F2 Rx Ry r r1 r2 R ax ax1 ax2 ay ay1 ay2')
+mu,mu1,mu2,fr,fr1,fr2,f1, f2, f3,N1,N2,N3,Nm, L,L1,L2,h,h1,h2,b,H= symbols('mu  mu1 mu2  fr fr1 fr2 f1 f2 f3 N1 N2 N3 Nm  L L1 L2 h h1 h2 b H')
+R1,R2,R3,rx,ry,fx1,fx2,fx3,fy1,fy2,fy3=symbols('R1 R2 R3 rx ry fx1 fx2 fx3 fy1 fy2 fy3')
 alpha,tetha,ac,at,alpha1,alpha2=symbols('alpha theta ac at alpha1 alpha2')
-t,vx,vy,vxy,Po,Ti,I_n,In,a_w,Fc,a_c,a_t,  Io=symbols('t vx vy vxy Po Ti I_n In a_w Fc a_c a_t    I_o')
+t,vx,vy,vxy,Po,Ti,I_n,In,a_w,Fc,a_c,a_t,  Io=symbols('t vx vy vxy Po Ti In In aw Fc ac at    Io')
 T,T1,T2,t1,t2,t3=symbols('T T1 T2 t1 t2 t3')
-K,X1,X2,X0,d,W,P=symbols('K X1 X2 X0 d W P')
+K,k,X1,X2,X0,d,W,P=symbols('K k X1 X2 X0 d W P')
 rho,z,z1,z2,A,p=symbols('rho z  z1 z2 A p') 
-xo,yo,zo,beta,xi,xf=symbols('xo yo zo beta x_i x_f')
+xo,yo,zo,beta,xi,xf=symbols('xo yo zo beta xi xf')
 yp,xp,pp=symbols("y' x' p'") 
 # diff variables
 
-dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV')   
+dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV,dM,=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV dM')   
  
-e1=MyEq(0,kname='e1',kshow=False,ktype='C',init=False)
-e2=MyEq(0,kname='e2',kshow=False,ktype='C',init=False)  
-e3=MyEq(0,kname='e3',kshow=False,ktype='C',init=False)  
-e4=MyEq(0,kname='e4',kshow=False,ktype='C',init=False)  
-e5=MyEq(0,kname='e5',kshow=False,ktype='C',init=False)   
-e6=MyEq(0,kname='e6',kshow=False,ktype='C',init=False)   
-e7=MyEq(0,kname='e7',kshow=False,ktype='C',init=False) 
-e8=MyEq(0,kname='e8',kshow=False,ktype='C',init=False)
-e9=MyEq(0,kname='e9',kshow=False,ktype='C',init=False)
+e1=MyEq(0,kname='e1',kshow=False,ktype='C',init=False,andsolve='')
+e2=MyEq(0,kname='e2',kshow=False,ktype='C',init=False,andsolve='') 
+e3=MyEq(0,kname='e3',kshow=False,ktype='C',init=False,andsolve='')  
+e4=MyEq(0,kname='e4',kshow=False,ktype='C',init=False,andsolve='') 
+e5=MyEq(0,kname='e5',kshow=False,ktype='C',init=False,andsolve='')  
+e6=MyEq(0,kname='e6',kshow=False,ktype='C',init=False,andsolve='')   
+e7=MyEq(0,kname='e7',kshow=False,ktype='C',init=False,andsolve='') 
+e8=MyEq(0,kname='e8',kshow=False,ktype='C',init=False,andsolve='')
+e9=MyEq(0,kname='e9',kshow=False,ktype='C',init=False,andsolve='')
 class mparticle:
-    def __init__(self,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=a,g=g,v=v,w=w,ac=ac,s='r',t=t,r=r,r1=r1,r2=r2,vx=vx,vy=vy,vxy=vxy,Ti=Ti,I_n=In,In=In,aw=aw,w1=w1,w2=w2,a_c=a_c,a_t=a_t,ax=ax,ay=ay,typeI='',mu=mu, Nm=Nm,Itype='p',xI=0):
+    def __init__(self,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=a,g=g,v=v,w=w,ac=ac,s='r',t=t,r=r,r1=r1,r2=r2,vx=vx,vy=vy,vxy=vxy,Ti=Ti,I_n=In,In=In,aw=aw,w1=w1,w2=w2,a_c=a_c,a_t=a_t,ax=ax,ay=ay,typeI='',mu=mu, Nm=Nm,Itype='p',xI=0,dire=0):
         
         self.m=m   # mass      
         self.g=g   # gravity   
@@ -78,6 +79,7 @@ class mparticle:
         self.typeI=typeI
         self.mu=mu
         self.Nm=get_real_value(Nm)
+        self.dire=dire
         
          
 
@@ -126,8 +128,20 @@ class mparticle:
 
          
          
+    def add(self,*args):
+        adire=self.dire
+        done=True
+        for i in args:
+            if done:
+                vv=i
+                done=False    
+            else:
+                done=True
+                self.add_forza(vv,i)
                 
-        self.F=mmF
+                
+        
+        
     def add_forza(self, kval,kang,x=0,y=0,s='r'): 
         # fl=self.F
         # mm=[ x[0]  for x in fl]
@@ -546,6 +560,8 @@ class mparticle:
         kres=opemat(kres,kope=kope)
         return(kres)
         
+    def fx_relative(self,kang,kope='s'):
+        return self.x_res_relative(kang=kang,kope=kope)
         
     def x_res_relative(self,kang,kope='s'):
          
@@ -562,7 +578,10 @@ class mparticle:
         if keval:
             kres=self.revalue(kres)
         kres=opemat(kres,kope=kope)
-        return(kres) 
+        return(kres)
+        
+    def fy_relative(self,kang,kope='s'):
+        return self.y_res_relative(kang=kang,kope=kope)
 
     def y_res(self,kope='',keval=True,kunisym=True):
         kres=self.resultante(ktype='y',kope=kope)
@@ -1096,6 +1115,18 @@ class mparticle:
             kres=self.energia('p2')+self.energia('k2')+self.energiaRot('ro2')
             kres=kres-self.energia('p1')-self.energia('k1')-self.energiaRot('ro1')
         return kres    
+    def simple_Ek(self):
+        mm=self.m 
+        vv=self.v 
+        kres=mm*vv*vv/2
+        return kres
+        
+    def simple_Er(self):
+        ii=self.getInerTotal()
+        ww=self.w
+        kres=ii*ww*ww/2
+        return kres
+        
         
     def work_x(self, kope=''):
         Fr=self.resultante('x')
@@ -1800,7 +1831,49 @@ class mparticle:
         for kop in mm:
             display(Image(filename=istOfImageNames[kop]))
 
-         
+    def eQmechanic(self):
+        kres=[]
+        are=self.dire
+        if are==0:
+            fx=self.x_res()
+            fy=self.y_res()
+        else:
+            fx=self.fx_relative(are)
+            fy=self.fy_relative(are)
+        veriV=fx+fy
+        all_var=fpoly(veriV,'list')
+        Nm=0
+        Nmm=''
+        
+        if N1 in all_var:
+            Nm=N1
+            Nmm=str(N1)
+        if N2 in all_var:
+            Nm=N2
+            Nmm=str(N2)
+        N0=MyEq(csolve(fy,Nm),kname=Nmm)
+        kres.append(N0)
+        
+        if self.mu!=0:
+            fr=symbols('fr')
+            fr=MyEq(Nm*self.mu,kname='fr')
+            fx.upgrade(fr,kshow=False)
+            kres.append(fr)
+        if self.ac!=0:
+            ac0=symbols(self.ac.name)
+             
+            ac0=MyEq(fx/self.m,kname=self.ac.name)
+            kres.append(ac0)
+        else:
+            if T in all_var:
+                T0=symbols('T')
+                T0=fx.solve(T,'T')
+                kres.append(T0)
+            elif F in all_var:
+                F0=symbols('F')
+                F0=fx.solve(F,'F')
+                kres.append(F0)
+        return kres            
        
 def ToInQ(P,kname='',kope=''):
     if kname == '':

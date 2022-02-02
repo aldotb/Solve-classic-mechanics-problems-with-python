@@ -306,6 +306,20 @@ def opemat(ksym,kope=''):
                     kres=kres-1
                 else:
                     kres=kill_root_poly(ksym)
+            try:
+                mm=fpoly(kres,'list')
+                skres=str(kres)
+                smm=[]
+                vres=[]
+                for i in mm:
+                    vres.append(str(opemat(i,'r')))
+                    smm.append(str(i))
+                 
+                for i,j in zip(smm,vres):
+                    skres=skres.replace(i,j)
+                kres=parse_expr(kres)    
+            except:
+                done=true
         if i=='-' :
             kres2=kres
             try:
@@ -1439,12 +1453,37 @@ def lxprint(*args):
             vec+= latex(i)+'\;'
     display(Math(vec))    
 
+
+    
+def symb_diff(*args):
+    kres=''
+    for i in args:
+        kres=kres+' d'+alphaname(i)
+    return kres
+def diff_name(ksym):
+    kres='d'+ alphaname(ksym)
+    return kres     
 def alphaname(ksym):
     kk=str(ksym)
     if kk=='alpha':
         return 'α'
     if kk=='beta':
         return 'ß'
+    if kk=='theta':
+        return 'θ'
+    if kk=='calpha':
+        return 'cos('+'α'+')'
+    if kk=='salpha':
+        return 'sin('+'α'+')'    
+    if kk=='talpha':
+        return 'tan('+'α'+')'
+    if kk=='cbeta':
+        return 'cos('+'ß'+')'
+    if kk=='sbeta':
+        return 'sin('+'ß'+')'    
+    if kk=='tbeta':
+        return 'tan('+'ß'+')'    
+        
     else:
         return kk
         
@@ -1482,5 +1521,64 @@ class datalab:
         self.value.append(kvalue)
         self.type.append(ktype)
         self.activo.append(kactivo)   
+    def get_qq(self):
+        return len(self.name)
+        
+def Cg2func(f1,f2,x,x1,x2):
+    Area=integrate(f1,(x,x1,x2))-integrate(f2,(x,x1,x2))
+    X=integrate((f1-f2)*x,(x,x1,x2))
+    X=X/Area
+     
+    Y=integrate((f1-f2)*(f1+f2)/2,(x,x1,x2))
+    Y=Y/Area
+    return X,Y 
+def findSubFunc(ksym,sval,inside=''):
+         
+        kini=0
+        kini2=0
+        sroot=[]
+        done=0
+        while kini<len(str(ksym)) and kini2!=-1:
+            kini2,sword=in_ope_string(ksym,sval,kini)
+            if kini2!=-1:
+                if inside!='':
+                    if inside in sword:
+                        sroot.append(sword)
+                else:
+                    sroot.append(sword)
+                        
+                 
+            kini=kini2+len(sval)
+        return sroot 
 
+def balance(ssym):  # usada x findSubFunc
+    cc=0
+    for i in ssym:
+        if i=='(':
+            cc+=1
+        if i==')':
+            cc-=1
+    return cc 
+
+def in_ope_string(ksym,sval,kini=0):  # usada x findSubFunc
+    ssym=str(ksym)
+    qq=len(ssym)
+    cc=ssym.find(sval,kini,qq)
+    inip=cc+len(sval)
+    
+    for i in range(inip+1,len(ssym)):
+        sward=ssym[inip:i]
+        veri=balance(sward)
+        if veri==0:
+            return cc,sval+sward 
+def get_midle_str(ssym,p1,p2):  #get_midle_str('123456789','123','89') return '4567' 
+     
+    qq=len(ssym)
+    q1=len(p1)
+    q2=len(p2)
+     
+    ssym=ssym.replace(p1,'')
+    ssym=ssym.replace(p2,'')
+    return ssym
+            
 datap=datalab()
