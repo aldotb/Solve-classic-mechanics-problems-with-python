@@ -514,7 +514,7 @@ def solve_coefcompare(obj,var):
     return simplesolve(*vece)
 
  
- 
+'''
 def eQandsymbols(*args):
     vece1=[]
     vece2=[]
@@ -580,22 +580,100 @@ def eQandsymbols(*args):
             vec2.append(data)
     vece5=vec2+vec1        
     return vece5,vecsymbols 
-    
-def eqpresolve(vecexpr,vecvar,**kwargs):
+'''
+
+def eQandsymbols2(*args):
+    vecexpr1,vecsys=eQandsymbols(*args)
+    vecexpr=[]
+    vecsys2=[]
+    for data in vecexpr1:
+        if type(data)==Symbol:
+            vecsys2.append(data)
+        else:
+            vecexpr.append(data)
+    if len(vecsys2)>0:
+        return vecexpr,vecsys2
+    else:
+        return vecexpr,vecsys    
+def eQandsymbols(*args):
+
+    exprs=[]
+    vecsymbols=[]
+
+    # detectar símbolos explícitos
+    for a in args:
+        if Is_symbols(a):
+            vecsymbols.append(a)
+
+    # aplanar listas y quitar strings
+    flat=[]
+    for a in args:
+        if isinstance(a,str):
+            continue
+        if isinstance(a,list):
+            flat.extend(a)
+        else:
+            flat.append(a)
+
+    # convertir ecuaciones a expresiones
+    for a in flat:
+        if isinstance(a,MyEqEq):
+            expr=a.e1.ksym-a.e2.ksym
+        elif isinstance(a,MyEq):
+            expr=a.ksym
+        else:
+            expr=a
+
+        if 'I' in str(expr):
+            exprs.append(re(expr))
+            exprs.append(im(expr))
+        else:
+            exprs.append(expr)
+
+    # eliminar duplicados
+    exprs=list(dict.fromkeys(exprs))
+
+    # detectar variables automáticamente
+    if not vecsymbols:
+        s=set()
+        for e in exprs:
+            try:
+                s |= e.free_symbols
+            except:
+                pass
+        vecsymbols=sorted(list(s),key=lambda x:x.name)
+
+    return exprs, vecsymbols    
+def eqpresolve(vecexpr,vecvar,positive='',**kwargs):
     if len(kwargs)>0:
         vecval2=[]
         for data in vecexpr:
             kval=real_subs(data,**kwargs)
             vecval2.append(kval)
         vecexpr=vecval2    
+
     kres=solve(vecexpr,vecvar,dict=True)
+
+    if positive:
+        kres2=[]
+        for sol in kres:
+            good=True
+            for v in sol.values():
+                if signo(v)<0:
+                    good=False
+            if good:
+                kres2.append(sol)
+        kres=kres2
+
     numvar=len(vecvar)
+
     if type(kres)==dict:
         svar,ssol=list(kres.keys()),list(kres.values())
         snam=[str(data) for data in svar]
         knames=snam
         kvalue=ssol
         qq=1         
+
     elif type(kres)==list:
         ssvar,sssol,ssnam=[],[],[]
         qq=len(kres)
@@ -609,16 +687,17 @@ def eqpresolve(vecexpr,vecvar,**kwargs):
             cc+=1
         knames=ssnam
         kvalue=sssol
- 
+
     else:
         knames=[str(data) for data in vecvar]
         kvalue=kres
         qq=1
-    return knames,kvalue,qq,numvar 
 
+    return knames,kvalue,qq,numvar
     
-def simplesolve(*args,positive='',**kwargs):
+def simplesolve(*args,positive=False,**kwargs):
     """
+    version 0.0
     Solve systems of equations with multiple processing options.
     
     This function provides an advanced interface for solving equations that combines
@@ -732,20 +811,37 @@ def simplesolve(*args,positive='',**kwargs):
     - eQandsymbols, eqpresolve, onlypositives, resolve2Eq, showresolve2Eq
     - signo (for sign detection)
     - factor, simplify (from sympy)
-    """
-    vecexpr,vecvar=eQandsymbols(*args)
-     
-    vecname,vecval,qq,numvar=eqpresolve(vecexpr,vecvar,**kwargs)
-    if positive!='':
-        vecname,vecval,qq,numvar=onlypositives(positive,vecname,vecval,qq,numvar)
-    if ('positive' in args or 'pos' in args) and numvar==1:
-        nsol=[]
-        for data in vecval:
-            if signo(data)==1 or float(data)>=0:
-                nsol.append(data)
-        vecname=vecname[0:len(nsol)]
-        qq=len(nsol)
-        vecval=nsol   
+    """ 
+    ops=['positive','pos','float','factor','simplify','noimg','eQ','Eq','eq']
+    try:
+        vecexpr,vecvar = eQandsymbols2(*args)
+
+    except:
+        vecexpr2=[]
+        vecvar=[]
+        vecexpr=[]
+
+        for data in args:
+            if not data in ops:
+                if type(data)==Symbol:
+                    vecvar.append(data)
+                else:       
+                    vecexpr2.append(data)
+
+        for data in vecexpr2:
+            if isinstance(data,MyEqEq):
+                vecexpr.append(data.e1.ksym-data.e2.ksym)
+            elif isinstance(data,MyEq):
+                vecexpr.append(data.ksym)
+            else:
+                vecexpr.append(data)
+            
+
+    
+    vecname,vecval,qq,numvar=eqpresolve(vecexpr,vecvar,positive=positive,**kwargs)
+ 
+ 
+        
     if 'float' in args:
         vecval2=[]
         for data in vecval:
@@ -779,9 +875,8 @@ def simplesolve(*args,positive='',**kwargs):
                 vecval2.append(simplify(data))
 
         vecval=vecval2
-    if 'fulldata' in args:
-        return vecname,vecval
-    elif 'eQ' in args:
+        
+    if 'eQ' in args:
         return resolve2Eq(vecname,vecval,qq,numvar)
     else:
         if not 'noshow' in args and not 'noimg' in args:
@@ -789,7 +884,105 @@ def simplesolve(*args,positive='',**kwargs):
         if len(vecval)==1:
             return vecval[0]
         else:    
-            return vecval
+            return vecval 
+            
+
+def mathexpr2latex(*args, center=False, inline=True, raw=False, **kwargs):
+    """
+    🎯 VERSIÓN CORREGIDA - Maneja correctamente MyEqEq
+    
+    Ahora retorna ecuaciones (a = b) no restas (a - b)
+    """
+    from sympy import latex, Eq
+    
+    def extract_expr(obj):
+        """Extrae expresión sympy CORRECTAMENTE"""
+        if obj is None:
+            return None
+            
+        # Caso MyEqEq - ¡IMPORTANTE! Retornar Eq(), no resta
+        if hasattr(obj, 'e1') and hasattr(obj, 'e2'):
+            # Retornar ECUACIÓN, no resta
+            return Eq(obj.e1.ksym, obj.e2.ksym)
+            
+        # Caso MyEq
+        elif hasattr(obj, 'ksym'):
+            return obj.ksym
+            
+        # String
+        elif isinstance(obj, str):
+            try:
+                from sympy import parse_expr
+                return parse_expr(obj.replace('^', '**'))
+            except:
+                return obj
+                
+        # Otros
+        else:
+            return obj
+    
+    # Procesar cada argumento
+    results = []
+    for arg in args:
+        expr = extract_expr(arg)
+        
+        if expr is None:
+            continue
+            
+        try:
+            # Generar LaTeX
+            if isinstance(expr, str):
+                latex_str = expr
+            else:
+                latex_str = latex(expr, **kwargs)
+            
+            results.append(latex_str)
+            
+        except Exception as e:
+            results.append(str(expr))
+    
+    if not results:
+        return ""
+    
+    # Aplicar delimitadores
+    if raw:
+        formatted = results[0] if len(results) == 1 else results
+    else:
+        if center:
+            formatted = [f"$${r}$$" for r in results]
+        else:
+            formatted = [f"${r}$" for r in results]
+    
+    # Unir resultados
+    if len(formatted) == 1:
+        if isinstance(formatted, list):
+            return formatted[0]
+        return formatted
+    else:
+        if inline:
+            return " ".join(formatted)
+        else:
+            return "\n".join(formatted)
+
+
+# Versiones de conveniencia
+def latex(*args, **kwargs):
+    """Alias corto"""
+    return mathexpr2latex(*args, **kwargs)
+
+def latex_center(*args, **kwargs):
+    """Centrado ($$...$$)"""
+    kwargs['center'] = True
+    return mathexpr2latex(*args, **kwargs)
+
+def latex_raw(*args, **kwargs):
+    """Solo LaTeX sin delimitadores"""
+    kwargs['raw'] = True
+    return mathexpr2latex(*args, **kwargs)
+def math2latex(*args, center=False, inline=True, raw=False, **kwargs):
+    kres=mathexpr2latex(*args, center=center, inline=inline, raw=raw, **kwargs)
+    print(kres)
+                 
 def onlypositives(vposi,knames,kvalue,qq,numvar):
     nvecn=[]
     nvecv=[]
