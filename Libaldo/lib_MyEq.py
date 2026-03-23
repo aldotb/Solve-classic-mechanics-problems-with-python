@@ -103,7 +103,7 @@ class MyEq:
     
     def s(self):
         if self.render:
-            latex_str = latex(self.ksym)
+            latex_str = latex_freeze(self.ksym)
             if self.showroot:
                 latex_str = niceroot(self.ksym)
             sR = self.name + ' = '  
@@ -114,7 +114,8 @@ class MyEq:
         """Se ejecuta automáticamente cuando escribes P solo en Jupyter"""
         sR = self.name + ' = ' if self.name else ''
         return f"${sR}{latex(self.ksym)}$"
-    
+    def _sympy_(self):
+        return self.ksym
     # MÉTODOS DE OPERACIONES QUE MODIFICAN LA INSTANCIA ACTUAL
     def Add(self, other,show=True):
         """Convierte P a P + other"""
@@ -503,48 +504,32 @@ class MyEq:
         
         Ejemplos:
             P.set(x, z)          # Reemplaza x por z permanentemente
-            P.set({x: z, y: w})  # Reemplaza múltiples variables
+            P.set(MyEq)  # Reemplaza value MyEq in name in MyEq
             P.set(x=z, y=w)      # Reemplaza con argumentos nombrados
         """
-        if args and kwargs:
-            raise ValueError("Usa solo argumentos posicionales O argumentos con nombre")
-        elif len(args)==1  and isinstance(args[0], MyEq):
-            e1=args[0]
-            newvar=e1.ksym
-            name=e1.name
-            name=name.replace('_','')
-            kres=self.ksym
-            kres=kres.subs(name,newvar)
-            self.ksym=kres
-            
-        elif len(args)==1  and not isinstance(args[0], MyEq):
-            Q=args[0]
+        kres=self.ksym
+        if len(kwargs)>0:
+            self.ksym=real_subs(self.ksym,**kwargs)
+        if len(args)==2:     
             try:
-                self.set(Q.L,Q.R)    
+                self.ksym=self.ksym.subs(args[0],args[1])
+                 
             except:
                 pass
-        elif len(args) == 2:
-            # P.set(x, z) - sustituye variable por valor
-            old_var, new_var = args
-            if evaluate==False:
-                sexpr=str(self.ksym)
-                sexpr=sexpr.replace(str(old_var),str(new_var))
-                kres=parse_expr(sexpr,evaluate=False)
-                if type(kres)==Mul:
-                    if kres.args[0]==1:
-                        kres=kres.args[1]
-                self.ksym=kres
-            else:    
-                self.ksym = self.ksym.subs(old_var, new_var)
-        elif len(args) == 1 and isinstance(args[0], dict):
-            # P.set({x: z, y: w}) - sustituye con diccionario
-            self.ksym = self.ksym.subs(args[0], evaluate=evaluate)
-        elif kwargs:
-            # P.set(x=z, y=w) - sustituye con argumentos nombrados
-            self.ksym = self.ksym.subs(kwargs, evaluate=evaluate)
-        else:
-            raise ValueError("Formato inválido. Usa: set(var, valor) o set({var: valor}) o set(var=valor)")
-        
+        if len(args)==1:
+            data=args[0]
+            if isinstance(data, MyEq):
+                valor=data.ksym
+                name=data.name
+                self.ksym=self.ksym.subs(str(name),valor)
+            from lib_MyEqEq import MyEqEq    
+            if isinstance(data, MyEqEq):
+                p1=unisymbols(data.e1.ksym)
+                p2=data.e2.ksym
+                try:
+                    self.ksym=self.ksym.subs(p1,p2)
+                except:
+                    self.ksym=self.ksym.subs(str(p1),p2)    
         self.s()  # Mostrar el nuevo resultado
 
     def limit(self,*args):
@@ -1040,3 +1025,15 @@ def simplifyimg(expr):
         return cf(knum,kden)
     else:
         return simplify(expr)       
+        
+def sendEqshow(data,name):
+    if name!='':
+        return MyEq(data,name)
+    else:
+        return data        
+        
+def out2data(data,name):
+    if name!='':
+        return MyEq(data,name)
+    else:
+        return data        

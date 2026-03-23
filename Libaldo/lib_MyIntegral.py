@@ -1,29 +1,23 @@
 from sympy import *
+ 
+from lib_Variables import *
 from lib_Mathbasic import *
-from lib_Algorith import *
-
-from lib_Exponencial import *
-from lib_tools import *
-
 from lib_MyEq import *
-from lib_MyEqEq import *
+from lib_MyEqEq import * 
 
-from lib_MyFunctions import *
-import copy
-from IPython.display import Math  # ,display
-from matplotlib.pyplot import ylabel, plot, show, xlabel, title
+ 
 
  
 import copy
 import numpy as np
 import pandas as pd
  
-
+ 
 # from lib_Func import *
 import dill  # pip install dill --user
 import pickle
-filename = 'workspace.pkl'
-x1=symbols('x1')
+ 
+ 
  
 def savework():
     dill.dump_session(filename='workspace.pkl')
@@ -32,7 +26,8 @@ def savework():
 def loadwork():
     dill.load_session(filename='workspace.pkl')
 
- 
+Lvar=[x, y, z, w, v, u, t, f, h, V, A,m,r,alpha,beta,theta]
+dLvar=[dx, dy, dz, dw, dv, du, dt, df, dh, dV, dA,dm,dr,dalpha,dbeta,dtheta] 
     
 # and to load the session again:
 def creadiffvar(var):
@@ -59,85 +54,116 @@ def creteintegral(expr,var=x,x1='',x2=''):
             
 
 #direx,direy=symbols('\overrightarrow{x} \overrightarrow{y}')
-dx,dy,dz=symbols('dx dy dz')
-beta=symbols('beta')
  
-class MyIntg (MyEq):
-    def __init__(self,expr,name,var=x,x1='',x2='',show=True,done=False):
-        expr=obj2expr(expr)
-        self.type='I'
-        if var==x or var==y or var==z:
-            if var==x:
-                dvar=dx
-            if var==y:
-                dvar=dy
-            if var==z:
-                dvar=dz                
-        else:    
-            dvar=creadiffvar(var)
-        self.dvar=dvar
-        self.sdvar=str(dvar)
-        expr=unisymbols(expr)
+def findvardiff(expr):
+    lvar=list(expr.free_symbols)
+    for data in lvar:
+        if data in dLvar:
+            return Lvar[dLvar.index(data)]
+    for data in lvar:
+        if len(str(data))==2 and str(data)[0]=='d':
+            return  symbols(str(data)[1]) 
+ 
+class MyIntg(MyEq):
+
+    def __init__(self, expr, name, var=x, x1='', x2='', show=True, done=False):
+
+        expr = obj2expr(expr)
+        self.type = 'I'
+
+        if var == x or var == y or var == z:
+            if var == x:
+                dvar = dx
+            if var == y:
+                dvar = dy
+            if var == z:
+                dvar = dz
+        else:
+            dvar = creadiffvar(var)
+
+        self.dvar = dvar
+        self.sdvar = str(dvar)
+
+        expr = unisymbols(expr)
+
         try:
-            expr=expr.subs(dvar,1)
-            expr=expr.subs(str(dvar),1)
+            expr = expr.subs(dvar, 1)
+            expr = expr.subs(str(dvar), 1)
         except:
             pass
-        self.ksym=expr
-        self.name=name
-        self.x1=getdata(x1)
-        self.x2=getdata(x2)
-        self.var=var 
-        self.Iksym=creteintegral(expr,var,x1=x1,x2=x2)
-        self.varc=False
-        self.done=False
-        self.changv=[]
+
+        self.ksym = expr
+        self.name = name
+        self.x1 = getdata(x1)
+        self.x2 = getdata(x2)
+        self.var = var
+
+        self.Iksym = creteintegral(expr, var, x1=x1, x2=x2)
+
+        self.varc = False
+        self.done = False
+        self.changv = []
+
         if show:
-            if self.ksym==1:
-                if x1!='':
-                    display (Math(self.name +'='+'\\int\\limits_{'+str(x1)+'}^{'+str(x2)+'} \\,'+str(self.dvar)))
-                else:    
-                    display (Math(self.name +'='+'\\int \\,'+' '+str(self.dvar)))
-            else:    
-                display(Math(self.name +'='+ latex(self.Iksym)))
-    def __call__(self,done=False,**kwargs):
-        if self.type=='P':
-            kres=unisymbols(self.ksym)
-        if self.type=='I': 
-            kres=unisymbols(self.Iksym)
-        if len(kwargs)>0:
-            kres=real_subs(kres,**kwargs)
+            self._display_integral()
+
+    # ✅ DISPLAY CENTRALIZADO
+    def _display_integral(self):
+
+        from sympy import Symbol, latex
+        from IPython.display import display, Math
+
+        name_tex = latex(Symbol(str(self.name)))
+
+        if self.ksym == 1:
+            if self.x1 != '':
+                expr_tex = rf"\int_{{{self.x1}}}^{{{self.x2}}} {latex(self.dvar)}"
+            else:
+                expr_tex = rf"\int {latex(self.dvar)}"
+        else:
+            expr_tex = latex(self.Iksym)
+
+        display(Math(f"{name_tex} = {expr_tex}"))
+
+    def __call__(self, done=False, **kwargs):
+        if self.type == 'P':
+            kres = unisymbols(self.ksym)
+        if self.type == 'I':
+            kres = unisymbols(self.Iksym)
+        if len(kwargs) > 0:
+            kres = real_subs(kres, **kwargs)
         return kres
 
     def __repr__(self):
-        if self.type=='P':
+        if self.type == 'P':
             kres = str(self.ksym)
         else:
             kres = str(self.Iksym)
-
         return kres
 
     def _latex(self, obj):
         return latex(self.ksym)
 
     def __str__(self):
-        return self.__repr__()    
+        return self.__repr__()
+
     def rebuild(self):
-        self.Iksym=creteintegral(unisymbols(self.ksym),var=unisymbols(self.var),x1=self.x1,x2=self.x2)
-        
+        self.Iksym = creteintegral(
+            unisymbols(self.ksym),
+            var=unisymbols(self.var),
+            x1=self.x1,
+            x2=self.x2
+        )
+
     def s(self):
         if self.type=='I':
-            self.rebuild()
-            if self.ksym==1:
-                 
-                if self.x1!='':
-                    display (Math(self.name +'='+'\\int\\limits_{'+str(self.x1)+'}^{'+str(self.x2)+'} \\,'+str(self.dvar)))
-                else:
-                    display (Math(self.name +'='+'\\int \\,'+' '+str(self.dvar)))
-            else:    
-                display(Math(self.name +'='+ latex(self.Iksym)))
+            expr_tex = latex(self.Iksym)
+            name_tex = latex(Symbol(self.name))
+            display(Math(f"{name_tex} = {expr_tex}"))
         else:
-            display(Math(self.name +'='+ latex(self.ksym)))
+            expr_tex = latex(self.ksym)
+            name_tex = latex(Symbol(self.name))
+            display(Math(f"{name_tex} = {expr_tex}"))
 
     def Add(self,obj):
         p1=self.Iksym
@@ -156,41 +182,37 @@ class MyIntg (MyEq):
         
     def doit(self,*args,show=True):
         if self.type=='P':
-            kres=self.ksym
- 
- 
+            pass
         else:
-            Ires=self.Iksym 
-            kres=Ires.doit()
+            Ires = self.Iksym 
+            kres = Ires.doit()
+
+            if 'float' in args:
+                try:
+                    kres = float(kres)
+                except:
+                    pass
+
+            if 'positive' in args:
+                kres = signo(kres)*kres
+                    
             if 'C' in args:
-                kres=kres+C1
+                kres = kres + C1
             if 'C1' in args:
-                kres=kres+C1
+                kres = kres + C1
             if 'C2' in args:
-                kres=kres+C2    
-            self.type='P' 
-            self.ksym=kres
-     
-        if 'float' in args:
-            try:
-                kres=float(kres)
-            except:
-                pass
-        if 'positive' in args:
-            kres=signo(kres)*kres
-         
-        if 'noupdate' in args:
-            if kname!='':
-                ee=MyEq(kres,kname,show=show)
-                return ee
-            
+                kres = kres + C2    
+
+            # CONVERTIR OBJETO
+            self.__class__ = MyEq
+            if len(args)==1 and isinstance(args[0],str):
+                self.__init__(kres, args[0], show=False)
             else:
-                return kres 
-        else:
-            self=MyEq(kres,self.name,show=False)
-        self.ksym=kres
+                self.__init__(kres, self.name, show=False)
+
         if show:
-            self.s() 
+            self.s()
+  
      
     def insideIntg(self):
         return self.ksym
@@ -207,6 +229,63 @@ class MyIntg (MyEq):
         diffvar=self.getdiffvar2()
         return kres*diffvar
         
+    def transfordiff(self,var2,show=True,**kwargs):
+        '''
+        var2: new variablefunction diff
+        **kwarg: dx=y*y*z, z=3...
+        '''
+        var1=self.var
+        expr=self.ksym*self.dvar
+        expr=real_subs(expr,**kwargs)
+        self.ksym=expr.subs(var1,1)
+        self.var=var2
+        self.dvar=symbols('d'+str(var2))
+        self.sdvar='d'+str(var2)
+        if show:
+            self.s()  
+            
+ 
+    def changevar(self,var2,expr,x1='',x2='',relimit=False,show=True):
+        '''
+        var2=newvar
+        expr= self.var in funcionof var2
+        '''
+        dvar=diffvar(var2) 
+        var1=self.var
+        newdiff=diff(expr,var2)
+        ksym=self.ksym.subs(var1,expr)*newdiff
+        if x1=='' and relimit:
+            oldx1 = self.x1
+            oldx2 = self.x2
+        
+            # resolver expr = oldx1 y expr = oldx2
+            y1 = solve(expr-oldx1, var2)[0]
+            y2 = solve(expr-oldx2, var2)[0]
+            
+            x1 = y1
+            x2 = y2
+            
+        Iksym=creteintegral(ksym,var=var2,x1=x1,x2=x2)
+        self.ksym=ksym
+        self.Iksym=Iksym
+        self.var=var2
+        if show:
+            self.s()
+    def changediff(self,var2,dexpr,x1='',x2='',relimit=False,show=True):
+        '''
+        changediff(newvar, diff expr...
+        '''
+        if x1=='':
+            x1=self.x1
+            x2=self.x2
+        expr=self.ksym
+        if isinstance(dexpr,MyEq):
+            dexpr=dexpr.ksym
+            
+        E1=createintegral(dexpr,var2)
+        expr=E1.doit()
+        return self.changevar(var2,expr,x1=x1,x2=x2,relimit=relimit,show=show)        
+            
     def changedifferential(self,var2,expr1,x1='',x2=''):
         '''
         var2= new variable 
@@ -246,28 +325,15 @@ class MyIntg (MyEq):
         if var==u:
             return du
         if var==t:
-            return dt    
-
-    def changevar(self,*args):
-        '''
-        changevar(new variable, old var in fun of nvar)
-        changevar(u,u**2)
-        '''
-        for data in args:
-            if type(data)==Symbol:
-                nvar=data
-            else:
-                expr=data
-        kres=self.ksym
-        dexpr=diff(expr,nvar)
-        kres=kres.subs(self.var,expr)*dexpr
-        self.var=nvar
-        self.dvar=creadiffvar(nvar)
-        self.ksym=kres
-        self.s()  
-        
-        
+            return dt 
             
+    def info(self):        
+        mdisplay('Iksym:',self.Iksym )
+        mdisplay('var:',self.var,',     dvar:',self.dvar,',     sdvar:',self.sdvar)
+        mdisplay('ksym:',self.ksym,',      name:',self.name) 
+        mdisplay('Limits     ','x1:',self.x1,',      x2:',self.x2)    
+
+        
     def restorevar(self):
         if len(self.changv)>0:
             ksym=self.ksym
@@ -279,6 +345,7 @@ class MyIntg (MyEq):
             self.changv=self.changv[0:-1]
             self.rebuild()
         self.s()
+ 
         
     def changevar2(self,*args):
         if len(args)==1:
@@ -336,46 +403,20 @@ class MyIntg (MyEq):
         self.s()
         
     def set(self,*args,**kwargs):
-        kres= self.ksym
+        expr=self.ksym
+        if len(kwargs)>0:
+            expr=real_subs(expr,**kwargs) 
         if len(args)==1 and type(args[0])==MyEq:
             svar=args[0].name
             vvar=args[0].ksym
-            kres=kres.subs(svar,vvar)
-        if len(args)==2 and Is_Math(args[0]) and Is_Math(args[1]):
-             
-            kres=kres.replace(args[0],args[1])
-             
-                
-        if len(kwargs)>0:
-            kres=real_subs(kres,**kwargs) 
-        if len(args)==2 and type(args[0])==str:
-             
-            svar=args[0]
-            var=unisymbols(args[1])
-            if type(var)==MyEq:
-                var=var.ksym
-               
-            kres=parse_expr(str(kres).replace(svar,str(var)))    
- 
-        self.ksym=kres
+            expr=expr.subs(svar,vvar)    
+        if len(args)==2 and Is_Math(args[0]) and Is_Math(args[1]): 
+            expr=expr.replace(args[0],args[1])
+     
+        self.Iksym = creteintegral(expr, self.var, x1=self.x1, x2=self.x2)
+        self.ksym=expr
         self.s()
-    '''
-    def set(self,*args,**kwargs):
-        
-        kres=self.ksym
-        if len(kwargs)>0:
-             kres=real_subs(kres,**kwargs)
-            
-
-        for i in args:
-            if type(i)==MyEq:
-                kres=kres.subs(i.name,i.ksym)
-                
-        self.ksym=kres
-        if self.type=='I':
-            self.rebuild()        
-        self.s()
-    '''    
+      
     def positivexpo(self):
         kres=self.ksym
         self.ksym=parse_expr(str(positivexpo(kres)),evaluate=False)
@@ -422,68 +463,8 @@ class MyIntg (MyEq):
         self.ksym=kres2
         self.rebuild()
         self.s()
-        
-    def changediff(self,*args,x1='',x2='',**kwargs):
-        '''
-        change differential var 
-        changediff( expr,new var)
-            newvar: thenew vartaht will be replace
-            expr; new var in function in actual diff var    
-        '''
-        if len(kwargs)==1 and len(args)==1:
-            for key, value in kwargs.items():
-                nval=args[0]
-                nexpr=value
-                sval=key
-            oldexpr=self.ksym
-            if sval==str(self.var):
-                oldexpr=oldexpr.subs(sval,nexpr)
-                ndiff=diff(nexpr,nval)
-                oldexpr=oldexpr*ndiff
-                self.var=nval
-                self.ksym=oldexpr
-            elif sval==str(self.dvar):
-                ndvar='d'+str(nval)
-                nexpr2=nexpr.subs(ndvar,1)
-                nintegrate=integrate(nexpr2,nval)
-                oldexpr=oldexpr.subs(self.var,nintegrate)
-                oldexpr=oldexpr*nexpr2
-                self.var=nval
-                self.ksym=oldexpr
-                    
-        else:    
-            oldv=self.var 
-            newv=args[0]
-            newexpr=args[1]
-            try:
-                ikres=self.Iksym
-                ikres=ikres.transform(oldv, newexpr)
-                kres=ikres.args[0]
-                if self.x1!='':
-                    (expr2,(evar,x1 ,x2 ))=ikres.args
-                    self.x1=x1 
-                    self.x2=x2
-            except:    
-                 
-                kres=self.ksym
-                svar=str(newv) 
-                if len(svar)==2 and svar[0]=='d':
-                    newv=parse_expr(svar[1])
-                    kres=kres*newexpr
-                     
-                else:    
-                    newdiff=diff(newexpr,newv)
-                    kres=self.ksym
-                    kres=kres.subs(oldv,newexpr)
-                    kres=kres*newdiff
-            self.var=newv
-            self.ksym=kres
-        if x1!='':
-            self.x1=x1
-            self.x2=x2
-
-        self.rebuild()
-        self.s()
+  
+ 
     def diff(self):
         self.type='P'
         return self.ksym
@@ -570,22 +551,32 @@ class My2Intg (MyEq):
         self.name=name
         self.tuple1=tuple1
         self.tuple2=tuple2
-        kres= Integral(Integral(expr,tuple1),tuple2)
-        self.Iksym=kres
-        display(Math(name +'='+ latex(kres)))
+        var1=tuple1[0]
+        var2=tuple2[0]
+        dvar1=diffvar(var1)
+        dvar2=diffvar(var2)
+        expr=expr.subs(dvar1,1)
+        expr=expr.subs(dvar2,1)
+        self.Iksym=Integral(Integral(expr,tuple1),tuple2)
+         
         self.type='2I'
-        
+        self.s()
+    '''    
     def rebuild(self,*args):
-        kres= Integral(Integral(self.kres,self.tuple1),self.tuple2) 
+        kres= Integral(Integral(self.Ikres,self.tuple1),self.tuple2) 
         self.Iksym=kres 
-        
+    ''' 
+
     def s(self):
-        if self.type=='P':
-            display(Math(self.name +'='+ latex(self.ksym)))
-        else:    
-            self.rebuild()
-            display(Math(self.name +'='+ latex(self.Iksym)))
-            
+        if self.type=='2I':
+            expr_tex = latex(self.Iksym)
+            name_tex = latex(Symbol(self.name))
+            display(Math(f"{name_tex} = {expr_tex}"))
+        else:
+            expr_tex = latex(self.ksym)
+            name_tex = latex(Symbol(self.name))
+            display(Math(f"{name_tex} = {expr_tex}"))
+        
     def doit(self,kname=''):
         kres=self.Iksym
         kres=kres.doit()
@@ -668,18 +659,48 @@ class My3Intg (MyEq):
         self.Iksym=kres
          
     def s(self):
-        if self.type=='P':
-            display(Math(self.name +'='+ latex(self.ksym)))
-        else:    
-            self.rebuild()
-            display(Math(self.name +'='+ latex(self.Iksym)))
         
-    def doit(self,kname=''):
-        kres=self.Iksym
-        kres=kres.doit()
-        self.type='P'
-        self.ksym=kres
-        self.s()    
+        expr_tex = latex(self.Iksym)
+        name_tex = latex(Symbol(self.name))
+        display(Math(f"{name_tex} = {expr_tex}"))
+         
+        
+    def value(self):
+        kres=self.Iksym.doit()
+        return kres
+        
+    def doit(self,*args,show=True):
+        if self.type=='P':
+            pass
+        else:
+            Ires = self.Iksym 
+            kres = Ires.doit()
+
+            if 'float' in args:
+                try:
+                    kres = float(kres)
+                except:
+                    pass
+
+            if 'positive' in args:
+                kres = signo(kres)*kres
+                    
+            if 'C' in args:
+                kres = kres + C1
+            if 'C1' in args:
+                kres = kres + C1
+            if 'C2' in args:
+                kres = kres + C2    
+
+            # CONVERTIR OBJETO
+            self.__class__ = MyEq
+            if len(args)==1 and isinstance(args[0],str):
+                self.__init__(kres, args[0], show=False)
+            else:
+                self.__init__(kres, self.name, show=False)
+
+        if show:
+            self.s()   
     
     def firstIntg(self,name=''):
         kres=self.ksym
@@ -744,7 +765,45 @@ class My3Intg (MyEq):
         self.varx=var2
         self.vary=var1
         self.s()
- 
+    def changevar(self, var_old, expr_new, var_new):
+        """
+        Cambio de variable en integral definida o indefinida.
+        var_old : variable original (x)
+        expr_new : expresión en nueva variable (2*u+1)
+        var_new : nueva variable (u)
+        """
+
+        expr = self.ksym
+        x1, x2 = self.x1, self.x2
+
+        # Jacobiano
+        J = diff(expr_new, var_new)
+
+        # sustituir integrando
+        newexpr = expr.subs(var_old, expr_new) * J
+
+        # intentar invertir transformación
+        try:
+            inv = solve(var_old - expr_new, var_new)
+            if isinstance(inv, list):
+                inv = inv[0]
+        except:
+            inv = None
+
+        # transformar límites si existen
+        if x1 is not None and inv is not None:
+            newx1 = inv.subs(var_old, x1)
+            newx2 = inv.subs(var_old, x2)
+        else:
+            newx1, newx2 = None, None
+
+        # actualizar integral
+        self.ksym = newexpr
+        self.varx = var_new
+        self.x1 = newx1
+        self.x2 = newx2
+        self.type = 'I'
+        self.s()
 
 def obj2str(obj):
     if type(obj)==str:
@@ -766,14 +825,25 @@ def obj2func(obj):
         return obj
 
 def obj2expr(obj):
-    if type(obj)==str:
+
+    # MyEqEq → L-R
+    if isinstance(obj, MyEqEq):
+        return simplify(expand(obj.L - obj.R))
+
+    # MyEq → ksym
+    if isinstance(obj, MyEq):
+        return obj.ksym
+
+    # string → parse
+    if isinstance(obj, str):
         return parse_expr(obj)
-    elif type(obj)==MyEq:
-        return  obj.ksym 
-    elif type(obj)==MyEqEq:
-        return  simplify(expand(obj.L-obj.R)) 
-    else:
-        return obj        
+
+    # sympy expr → directo
+    if isinstance(obj, Basic):
+        return obj
+
+    # fallback
+    return obj        
         
 def obj2MyEq(obj,var=x):
     obj=obj2func(obj)

@@ -15,6 +15,16 @@ from lib_MyEq import *
 
 inesym=['<','<=','=','>=','>','<>']
 inesym2=['<','≤','=','≥','>','≠']
+
+ 
+def findvardiff(expr):
+    lvar=list(expr.free_symbols)
+    for data in lvar:
+        if data in dLvar:
+            return Lvar[dLvar.index(data)]
+    for data in lvar:
+        if len(str(data))==2 and str(data)[0]=='d':
+            return  symbols(str(data)[1])
 def getdata(expr):
     kres=expr
     if type(expr)==MyEq:
@@ -86,6 +96,9 @@ class MyEqEq:
             P2=real_subs(p2,**kwargs)
             Q2=MyEqEq(P1,P2,show=false)
             Q2.s()
+    def _sympy_(self):
+        return self.ksym 
+        
     def s(self,*args,kshow=True):
         if self.e1.ksym!=self.bK1[-1] or self.e2.ksym!=self.bK2[-1]:
             self.bK1.append(self.e1.ksym)
@@ -99,15 +112,15 @@ class MyEqEq:
             if self.name=='':
                 if len(args)>0:
                     sexpr2=str(args[0])
-                    display(Math(latex(p1)+' '+ps+' '+latex(p2)+', '+sexpr2))
+                    display(Math(latex_freeze(p1)+' '+ps+' '+latex_freeze(p2)+', '+sexpr2))
                 else:    
-                    display(Math(latex(p1)+' '+ps+' '+latex(p2)))
+                    display(Math(latex_freeze(p1)+' '+ps+' '+latex_freeze(p2)))
             else:
                 if len(args)>0:
                     sexpr2=str(args[0])
-                    display(Math(name+': '+latex(p1)+' '+ps+' '+latex(p2)+', '+sexpr2))
+                    display(Math(name+': '+latex_freeze(p1)+' '+ps+' '+latex_freeze(p2)+', '+sexpr2))
                 else:    
-                    display(Math(name+': '+latex(p1)+' '+ps+' '+latex(p2)))
+                    display(Math(name+': '+latex_freeze(p1)+' '+ps+' '+latex_freeze(p2)))
                 
              
     @property     
@@ -620,13 +633,25 @@ class MyEqEq:
             
     # ... AGREGAR TODOS LOS MÉTODOS QUE QUIERAS de la misma forma ...
     
-    def solve(self, *args, **kwargs):
+    def solve(self, *args,verbose=0, **kwargs):
         """Resuelve la ecuación"""
-
+        
         QQ=MyEq(self.L-self.R,'QQ',show=False)
         return QQ.solve(*args,**kwargs)
         
-  
+    def solvestep(self,expr):
+        name=''
+        var=expr
+        self.simplify()
+        if type(expr)==str:
+            name=expr
+            var=unisymbols(symbols(expr))
+        kres=stepbystepsolve(var,self)
+        if name!='':
+            return MyEq(kres,name,show=False)
+        else:
+            return kres 
+            
     def solveandset(self,expr,show=True,**kwargs):
         p1 =real_subs(self.e1.ksym,**kwargs)
         p2 =real_subs(self.e2.ksym,**kwargs)
@@ -774,8 +799,24 @@ class MyEqEq:
         self.e1.ksym=exp(self.e1.ksym)
         self.e2.ksym=exp(self.e2.ksym)
         if show:
-            self.s()   
+            self.s()  
             
+    def integra(self,show=True): 
+        expr1=self.e1.ksym
+        expr2=self.e2.ksym
+        v1=findvardiff(expr1)
+        v2=findvardiff(expr2)
+        if 'dα' in str(expr1) and v1==alpha:
+            expr1=expr1.subs(dalpha,1)
+        if 'dα' in str(expr2) and v2==alpha:
+            expr2=expr2.subs(dalpha,1)    
+        I1=createintegral(expr1,v1)
+        I2=createintegral(expr2,v2)
+        self.e1.ksym=I1
+        self.e2.ksym=I2
+        if show:
+            self.s() 
+        
     def Integral(self,show=True):
         from lib_MyDiff import findvardiff, Integral2
         p1=self.L
@@ -788,9 +829,12 @@ class MyEqEq:
         self.e2.ksym=P2
         if show:
             self.s()
-    def doitI(self,show=True):
+    def doitI(self,*args,show=True):
         self.e1.ksym=self.e1.ksym.doit()
-        self.e2.ksym=self.e2.ksym.doit()+C
+        if 'C' in args:
+            self.e2.ksym=self.e2.ksym.doit()+C
+        else:
+            self.e2.ksym=self.e2.ksym.doit()   
         if show:
             self.s()  
 
@@ -833,8 +877,46 @@ def obj2exprMQ(expr):
     elif type(expr)==MyEqEq:
         return expr.e1.ksym, expr.e2.ksym
     else:
-        return expr,expr  
+        return expr,expr 
+        
+def stepbystepsolve(var,*args):
+    if len(args)==1:
+        expr=args[0]
+        if type(expr)==MyEqEq:
+            expr.simplify(show=False)
+            expr.simplify(show=False)
+            expr1=expr.L
+            expr2=expr.R
+        else:
+            expr1=expr.ksym
+            expr1.simplify(show=False)
+            expr2=0
+    else:
+        expr1=simplify(args[0])
+        expr2=simplify(args[1])
 
+    # ecuacion inicial
+    display(Eq(expr1,expr2))
+
+    eq = expr1 - expr2
+
+    # separar partes
+    left = collect(eq, var).coeff(var)*var
+    right = -(eq - left)
+
+    display(Eq(left,right))
+
+    # coeficiente de la variable
+    coef = left/var
+
+    display(Eq(coef*var,right))
+
+    # dividir
+    sol = right/coef
+
+    display(Eq(var,sol))
+
+    return sol
 '''
 def superset(*args,**kwargs):
     

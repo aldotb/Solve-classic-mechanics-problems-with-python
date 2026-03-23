@@ -35,7 +35,7 @@ m,m1,m2,m3,m4,M,g,x,x0,x1,x2,y,y0,y1,y2,X,Y,a,a1,a2,a3,v,v1,v2,M1,M2,M3, V ,V1 ,
 w,w1,w2,aw, aw1,aw2,F,F1,F2,Rx,Ry,r,r1,r2,R, ax, ax1, ax2,ay, ay1,ay2= symbols('w w1 w2 aw aw1 aw2 F F1 F2 Rx Ry r r1 r2 R ax ax1 ax2 ay ay1 ay2')
  
 
-mu,mu1,mu2,fr,fr1,fr2,f1, f2, f3,N1,N2,N3,Nm, L,L1,L2,h,h1,h2,b,H= symbols('mu  mu1 mu2  f_r fr1 fr2 f1 f2 f3 N1 N2 N3 N_m  L L1 L2 h h1 h2 b H')
+mu,mu1,mu2,fr,fr1,fr2,f1, f2, f3,N1,N2,N3,Nm, L,L1,L2,h,h1,h2,b,H= symbols('mu  mu1 mu2  f_r fr1 fr2 f1 f2 f3 N1 N2 N3 Nm  L L1 L2 h h1 h2 b H')
 Io,R1,R2,R3,Io1,Io2=symbols('Io R1 R2 R3 Io_1 Io_2')
 
 alpha,tetha,ac,at,alpha1,alpha2=symbols('alpha theta a_c a_t alpha1 alpha2')
@@ -50,7 +50,7 @@ vv,Ma=symbols('vv  M_a') # velocidad al cuadrado
 # diff variables
 dt=symbols('d_t') 
 dm,ds,dx,dy,dz,dt,dr,dh,dL,da,dA,dv,dV,dM,=symbols('dm ds dx dy dz dt dr dh dL da dA dv dV dM')   
-direx,direy=symbols ('\overrightarrow{x} \overrightarrow{y}') 
+aw=symbols('ậ') 
 from sympy.physics.mechanics import *
 
 anam=str(alpha)
@@ -64,8 +64,11 @@ class mparticle:
     P.cmass() : return (x,y) position masss gravity
     
     '''
-    def __init__(self,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=0,ang=0,g=g,v=v,w=w,ac=0,s='r',t=t,r=r,r1=r1,r2=r2,vx='',vy='',vxy=vxy,Ti=Ti,Io=Io,aw=aw,w1=w1,w2=w2 ,at=at,ax=0,ay='',typeI='',mu=mu, Nm=Nm,Itype='p',xI=0,dire=0,direx=0,direy=0,vv='',deltat=0.01,posx=0,posy=0,dt=dt,Ma=Ma,type='P',q=q,K=K,Fr=0):
-        
+    def __init__(self,*args,x1=x1,x2=x2,y1=y1,y2=y2,v1=v1,v2=v2,m=m,a=0,ang=0,g=g,v=v,w=w,ac=0,s='r',t=t,r=r,r1=r1,r2=r2,vx='',vy='',vxy=vxy,Ti=Ti,In=In,aw=aw,w1=w1,w2=w2 ,at=at,ax=ax,ay='',typeI='',mu=mu, Nm=Nm,Itype='p',xI=0,dire=0,direx=0,direy=0,vv='',deltat=0.01,posx=0,posy=0,dt=dt,Ma=Ma,type='P',q=q,K=K,Fr=0,tipo=''):
+        self.name='P'
+        self.tipo=tipo
+        if len(args)==1:
+            self.name=args[0]
         self.m=m   # mass      
         self.g=g   # gravity   
         self.x1= x1 # x1      start Point >(x1,y1),v1D:\Libaldo\SolveLib\Fin_F\physic_lib.py
@@ -107,7 +110,7 @@ class mparticle:
         self.Po=Po
         self.Ti=Ti
         self.I_n=Io
-        self.In=Io
+        self.In=In
         self.Io=Io        
         self.aw=aw
         self.aw=aw
@@ -173,86 +176,90 @@ class mparticle:
         else:  
             self.add_forza(args[2],ang,x=args[0],y=args[1])
             
-  
-    def add_forzas(self,*args):
-        for data in args:
-            self.add_forza(*data)
-            
-    def add_forza(self, kval,kang,x=0,y=0,s='r'): 
-        # fl=self.F
-        # mm=[ x[0]  for x in fl]
-        # mm=unisymbols(mm)
-        # if unisymbols(kval) not in mm or krep==True:
-             
-        # if s=='s':
-            # kang=sex2rad(kang)
-            
-        mm=self.F
-         
-        mm.append([kval,kang,x,y])        
-        self.F=mm
-        
-    #####  Resultantes  #####        
-    def xres(self,**kwargs): # ********   Static Result sum F 
-        kres=0
-        F=self.F 
-        for data in F:
-            val=data[0]
-            ang=data[1]
-            kres=kres+val*cos(ang)
-            kres=real_subs(kres,**kwargs)
-        return kres    
-
-    def Fx(self,kname='',show=True):
-        if kname=='':
-            return self.xres()
-        else:    
-            ee=MyEq(self.xres(),kname,show=False)
-        if show:
-            ee.s()
-        return ee
-
-
-    def xres_relative(self, alpha,name='', **kwargs):
-        Fx = self.xres(**kwargs)
-        Fy = self.yres(**kwargs)
-        kres= real_subs(Fx*cos(alpha) + Fy*sin(alpha), **kwargs)
-        if name !='':
-            return MyEq(kres,name)
+ 
+    def add_Normal(self,n=1):
+        if n==1:
+            self.add_forza(N1,pi/2)
+            display(Math('Normal :'+latex(N1)+', '+latex(pi/2)))
+        elif n==2:
+            self.add_forza(N2,pi/2)
+            display(Math('Normal :'+latex(N2)+', '+latex(pi/2)))
         else:
-            return kres
+            self.add_forza(N3,pi/2)
+            display(Math('Normal :'+latex(N3)+', '+latex(pi/2)))
+            
+    def add_Weight(self):
+        self.add_forza(self.m*self.g,-pi/2)
+        display(Math('Weight :'+latex(self.m*self.g)+', '+latex(pi/2)))
+             
+             
+    def add_forza(self, *args):
 
-        
+        mm = self.F
 
-    def yres(self,**kwargs): # ********   Static Result sum F 
-        kres=0
-        F=self.F 
-        for data in F:
-            val=data[0]
-            ang=data[1]
-            kres=kres+val*sin(ang)
-            kres=real_subs(kres,**kwargs)
-        return kres    
-        
-    def Fy(self,kname='',show=True):
-        if kname=='':
-            return self.yres()
-        else:    
-            ee=MyEq(self.yres(),kname,show=False)
-        if show:
-            ee.s()
-        return ee    
+        # caso 1: F,alpha  o  F,alpha,x,y
+        if not isinstance(args[0], (tuple,list)):
 
-    def yres_relative(self, alpha,name='', **kwargs):
+            if len(args) == 2:
+                F,alpha = args
+                x,y = 0,0
+
+            elif len(args) == 4:
+                F,alpha,x,y = args
+
+            else:
+                raise ValueError("Use (F,alpha) o (F,alpha,x,y)")
+
+            mm.append([F,alpha,x,y])
+
+        # caso 2: tuplas
+        else:
+
+            for t in args:
+
+                if len(t)==2:
+                    F,alpha = t
+                    x,y = 0,0
+
+                elif len(t)==4:
+                    F,alpha,x,y = t
+
+                else:
+                    raise ValueError("Tupla debe ser (F,alpha) o (F,alpha,x,y)")
+
+                mm.append([F,alpha,x,y])
+
+        self.F = mm
+    
+    #####  Resultantes  #####        
+    def xres(self,*args,**kwargs):
+        name, alpha = pick2data(*args)
+
+        kres = 0
+        for val, ang, *_ in self.F:
+            kres += val*cos(ang - alpha)
+            kres = real_subs(kres, **kwargs)
+
+        kres = tsimplify(kres)
+        return out2data(kres,name)
+
+
+    def yres(self,*args,**kwargs):
+        name, alpha = pick2data(*args)
+
         kres = 0
         for val, ang, *_ in self.F:
             kres += val*sin(ang - alpha)
             kres = real_subs(kres, **kwargs)
-        if name !='':
-            return MyEq(kres,name)
-        else:
-            return kres
+
+        kres = tsimplify(kres)
+        return out2data(kres,name)    
+
     
+
+        
+
+
     def fieldforce(self,x,y,*args,**kwargs):
         qq=self.Q
         x1=x
@@ -385,8 +392,13 @@ class mparticle:
     def ang_res(self,kope=''):
         tanr=self.tan_res()
         kres=atan(tanr)
+        
          
         return(kres)    
+    def rendervector(self,alpha=pi/3):
+        datav=pdatagraf(self,alpha=alpha)
+        name=self.name
+        rendervector(name,*datav,tipo=self.tipo) 
         
     def vec_displace(self):  #lib_Trajectory.py
         xx=self.x2-self.x1
@@ -544,28 +556,17 @@ class mparticle:
     
 
     def To(self,*args,**kwargs):
-        xx=''
-        yy=''
-        kname='To'
-        for i in args:
-            if type(i)==str:
-                kname=i
-            elif xx=='':
-                xx=i
-            else:
-                yy=i
-        if xx=='':
-            xx=0
-        if yy=='':
-            yy=0
+        name,xx,yy=pick3data(*args) 
+ 
         
         
-        ktorque=self.torque(xx,yy)
+        ktorque=factor(expand(-1*self.torque(xx,yy)))
         ktorque=real_subs(ktorque,**kwargs)
+        ktorque=simplify(ktorque)
         
-        
-        ee= MyEq(ktorque,kname=kname)
-        return ee     
+        return out2data(ktorque,name)
+ 
+             
                     
     def Mo(self,kname='Mo',**kwargs):
         kres=self.I_n
@@ -609,21 +610,22 @@ class mparticle:
             kt+=fy
             
         kres=unisymbols(kt)
-        if keval:
-            kres=self.revalue(unisymbols(kres))      
          
-        try:
-            pass
-        except:
-            pass
         return(kres) 
         
  
-
+     
    
-        
-        
  
+    def acdynamic(self,*args):
+        name,angle=pick2data(*args)
+        kres=cf(self.xres(angle),self.m)
+        return out2data(kres,name)
+        
+    faccel=acdynamic
+    dynamicac=acdynamic
+    
+    
     def ac_due_Forza(kdire='',kname=''):  #lib_Trajectory.py
         if kdire=='':
             kdire=self.dire
@@ -715,7 +717,7 @@ class mparticle:
     def ywork(self,name='',**kwargs):
         y1=self.y1
         y2=self.y2
-        L=y1-y2
+        L=y2-y1
         F=self.yres()
         kres=F*L
         kres=real_subs(kres,**kwargs)
@@ -823,55 +825,31 @@ class mparticle:
          
         
         
-    def eQtraslation(self,**kwargs):
-        if self.dire!=0:
-            fx=self.x_res_relative(self.dire)
-        else:
-            fx=self.xres()
-            
+    def eQtraslation(self,*args,**kwargs):
+        name,angle=pick2data(*args)
+        F=self.xres(angle)
         aa=self.ac
         mm=self.m
-        p1=real_subs(fx,**kwargs)
-        p2=mm*aa
-        p2=real_subs(p2,**kwargs)
-
-        return MyEqEq(p1,p2)
-             
-    def eQrotation(self,*args,x=0,y=0,view_diff=False,var1=alpha,var2=t,**kwargs):
-         
-                  
-                 
-        aww=self.aw
-        if aww==aw and view_diff:
-            aww=anam2
-        ww=self.w
-        if ww==w and view_diff:
-            ww=anam1    
-        p1= self.Io*aww  
-        for i in args:
-                if i=='w':
-                    p1= self.Io*ww
-                elif i=='a':
-                    p1= self.Io*self.ac/self.r
-                else:
-                    p1= self.Io*ww
+        kres= F-aa*mm  
+  
+        kres=real_subs(kres,**kwargs)
+        if name=='':
+            return kres
+        else:
+            return MyEq(kres,name)    
         
-        p2= self.torque(x,y)
-        print(len(args),args)
-        if len(args)>0:
-            print(1) 
-            if 'positive' in args:
-                print(2) 
-                p2=makepos(p2)
-        if len(kwargs)>0:
-            for key, value in kwargs.items():
-                p1=real_subs(p1,**kwargs)
-                p2=real_subs(p2,**kwargs)
-        qq=MQ(p1,p2,kshow=False)
-        #ee=Eq(p1,p2)
-        #init_vprinting()
-        qq.s()
-        return qq
+    def eQrotation(self,*args,In=''):
+        name,x1,x2=pick3data(*args)
+        To=self.To(x1,x2)
+        if In=='':
+            In=self.In
+        aw=self.aw    
+        kres=To-aw*In
+        if name!='':
+            return MyEq(kres,name)
+        else:
+            return kres         
+    
         
     def eQmovradial(self,ang=0,negative=False):
         fx=self.Fx_relative(ang,kshow=False)
@@ -963,15 +941,8 @@ class mparticle:
         kres=ii*ww*ww/2
         return kres
         
-        
-    def work_x(self, kope=''):
-        Fr=self.resultante('x')
-        d1=self.x1
-        d2=self.x2
-        dd=d2-d1
-        kres=Fr*dd
-         
-        return(kres)       
+ 
+                
         
     ####################################
     ###  Kunematic functions ###########
@@ -1950,13 +1921,7 @@ def accy2diffyQ(*args,kope=''):
         ee=MyEq(kres,sD('y',2),type='d2')
         return ee        
 
-def sD(kstr,kop=1): #put dot or double dot over symbol name
-    if kop==2:
-        sd='d\ddot{'+kstr+'_t}'
-    else:
-        sd='d\dot{'+kstr+'_t}'
-    return sd
-
+ 
 
     
 def sym2vec(mm):
@@ -2207,4 +2172,111 @@ def electricWork(Qq,*args,x2=0,y2=0,K=9*10**9):
         Va+=electricPot(x1,y1,data)
         Vb+=electricPot(x2,y2,data)      
     qres=Qq.Q*(Vb-Va)
-    return qres      
+    return qres
+
+def pdatagraf(self,alpha=pi/6):
+
+    alpha2=alpha
+    vecf = self.F
+    dataf = []
+
+    for data in vecf:
+
+        nom = str(data[0])
+        dire = data[1]
+
+        if signo(data[0]) == -1:
+            nom = str(-1*data[0])
+            dire = simplify(dire + pi)
+
+        dire = dire.subs('alpha', alpha2)
+
+        dataf.append((nom, dire))
+
+    return dataf 
+ 
+
+def rendervector(nombre,*args,subs={},tipo=''):
+
+    cx = -0.2
+    cy = -0.2
+
+    L = 1.6
+
+    colors=["red","blue","green","orange","purple","brown","black"]
+
+    fig,ax=plt.subplots(figsize=(5,5))
+
+
+    # objeto central
+    if tipo=='block':
+
+        rect=plt.Rectangle(
+            (cx-0.3,cy-0.3),
+            0.6,
+            0.6,
+            fill=False,
+            linewidth=2
+        )
+
+        ax.add_patch(rect)
+
+    if tipo=='ball':
+
+        circ=plt.Circle(
+            (cx,cy),
+            0.3,
+            fill=False,
+            linewidth=2
+        )
+
+        ax.add_patch(circ)
+
+
+    ax.text(cx,cy,nombre,ha='center',va='center')
+
+
+    # vectores
+    for i,data in enumerate(args):
+
+        if len(data)==2:
+            name,ang=data
+            ang_draw=ang
+        else:
+            name,ang,ang_draw=data
+
+        try:
+            ang=float(sp.N(ang_draw.subs(subs)))
+        except:
+            ang=float(ang_draw)
+
+        vx=L*np.cos(ang)
+        vy=L*np.sin(ang)
+
+        color=colors[i%len(colors)]
+
+        ax.arrow(
+            cx,cy,
+            vx,vy,
+            width=0.035,
+            head_width=0.18,
+            length_includes_head=True,
+            color=color
+        )
+
+        ax.text(
+            cx+vx*1.2,
+            cy+vy*1.2,
+            name,
+            fontsize=14,
+            ha='center',
+            color=color
+        )
+
+
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_xlim(-2,2)
+    ax.set_ylim(-2,2)
+
+    plt.show()    
